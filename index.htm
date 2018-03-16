@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+
+    <div id="game-container">
+    </div>
+
+    <script type="module">
+      import {Game}     from './src/game.js';
+      import {Renderer} from './src/renderer.js';
+
+      const game = new Game();
+      const renderer = new Renderer('game-container', 500, 500);
+
+      renderer.draw();
+    </script>
+
+  </body>
+</html>
