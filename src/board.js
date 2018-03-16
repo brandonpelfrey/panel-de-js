@@ -3,6 +3,7 @@ const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 class Block {
   constructor({state=BLOCK_STATE_INITIAL} = {}) {
     this.state = state;
+    this.color = 'red';
   }
 }
 
