@@ -2,6 +2,7 @@ const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 const DROP_SPEED = 10;
 
 const BLOCK_COLORS = ["red", "blue", "purple", "green", "yellow"];
+const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
 
 class Block {
   constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
@@ -51,6 +52,20 @@ class Board {
         const color = BLOCK_COLORS[randomIndex];
         this.grid.put(col, row, new Block({ color: color }));
       }
+    }
+  }
+
+  pushTrashUp() {
+    // Move everything on the playfield up.
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        this.grid.put(x,y, this.grid.get(x,y+1) );
+        this.grid.put(x,y+1, null);
+      }
+    }
+
+    for (let x = 0; x < this.width; x++) {
+      this.grid.put(x, this.height-1, new Block({ color: randomChoice(BLOCK_COLORS) }));
     }
   }
 
