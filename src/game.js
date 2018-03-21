@@ -1,6 +1,6 @@
-import {Board} from './board.js';
-import {Cursor} from './cursor.js';
-import {Keyboard} from './keyboard.js';
+import { Board } from './board.js';
+import { Cursor } from './cursor.js';
+import { Keyboard } from './keyboard.js';
 
 class Game {
   constructor() {
@@ -19,4 +19,4 @@ class Game {
   }
 }
 
-export {Game};
+export { Game };

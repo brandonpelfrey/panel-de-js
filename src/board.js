@@ -1,7 +1,7 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 
 class Block {
-  constructor({state=BLOCK_STATE_INITIAL} = {}) {
+  constructor({ state = BLOCK_STATE_INITIAL } = {}) {
     this.state = state;
     this.color = 'red';
   }
@@ -12,9 +12,9 @@ class BoardGrid {
   constructor(width, height) {
     this.width = width;
     this.heigh = height;
-    
+
     this.grid = Array(height);
-    for(let col=0; col<height; ++col) {
+    for (let col = 0; col < height; ++col) {
       this.grid[col] = Array(width);
     }
   }
@@ -24,7 +24,7 @@ class BoardGrid {
 };
 
 class Board {
-  constructor({width = 8, height = 20} = {}) {
+  constructor({ width = 8, height = 20 } = {}) {
     this.width = width;
     this.height = height;
     this.grid = new BoardGrid(width, height);
@@ -37,4 +37,4 @@ class Board {
   }
 }
 
-export {Board};
+export { Board };

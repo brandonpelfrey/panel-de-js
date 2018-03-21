@@ -51,8 +51,8 @@ class Cursor {
     }
 
     // Handle board bounds
-    this.position[0] = Math.min(board.width-1 - (CURSOR_WIDTH-1), Math.max(0, this.position[0] ));
-    this.position[1] = Math.min(board.height-1, Math.max(0, this.position[1] ));
+    this.position[0] = Math.min(board.width - 1 - (CURSOR_WIDTH - 1), Math.max(0, this.position[0]));
+    this.position[1] = Math.min(board.height - 1, Math.max(0, this.position[1]));
   }
 }
 

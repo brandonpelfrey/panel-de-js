@@ -1,10 +1,9 @@
-
 class Keyboard {
   constructor() {
     this.downKeys = new Set();
 
-    document.addEventListener("keydown", (e) => { this.keydown(e) } , false);
-    document.addEventListener("keyup", (e) => { this.keyup(e) } , false);
+    document.addEventListener("keydown", (e) => { this.keydown(e) }, false);
+    document.addEventListener("keyup", (e) => { this.keyup(e) }, false);
   }
 
   keydown(e) {
@@ -22,4 +21,4 @@ class Keyboard {
   // TODO : Callbacks for special keys down/up
 }
 
-export {Keyboard};
+export { Keyboard };
