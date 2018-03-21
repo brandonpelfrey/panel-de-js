@@ -50,8 +50,39 @@ class Board {
     this.grid.put(...positionOne, blockTwo);
   }
 
-  tick() {
+  _determineClears() {
+    let allClears = [];
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const block = this.grid.get(x, y);
+        if (block) {
+          let rowClears = this._getLineClears(x, y, block.color, true);
+          let colClears = this._getLineClears(x, y, block.color, false);
+          allClears.push(...rowClears);
+          allClears.push(...colClears);
+        }
+      }
+    }
+    allClears.forEach((xy) => this.grid.put(...xy, null));
+  }
 
+  _getLineClears(x, y, color, isRow) {
+    let clears = [];
+    let next;
+    do {
+      clears.push([x, y]);
+      if (isRow) {
+        x++
+      } else {
+        y++;
+      }
+      next = this.grid.get(x, y);
+    } while (next && next.color == color);
+    return clears.length >= 3 ? clears : [];
+  }
+
+  tick() {
+    this._determineClears();
   }
 }
 

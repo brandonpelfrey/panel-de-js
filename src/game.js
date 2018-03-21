@@ -11,6 +11,7 @@ class Game {
 
   tick() {
     this._tickCursor();
+    this.board.tick();
   }
 
   _tickCursor() {
