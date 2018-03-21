@@ -31,7 +31,7 @@ class Renderer {
   _drawBlocks(board) {
     for (let row = 0; row < this.tileRows; ++row) {
       for (let col = 0; col < this.tileColumns; ++col) {
-        const block = board.grid.get(row, col);
+        const block = board.grid.get(col, row);
         if (block != null) {
           this.canvasCtx.fillStyle = block.color;
           this.canvasCtx.fillRect(TS * col, TS * row, TS, TS);

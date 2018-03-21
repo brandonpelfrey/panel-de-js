@@ -1,10 +1,12 @@
 const CURSOR_WIDTH = 2;
+const SWAP_KEY = " ";
 
 class Cursor {
   constructor() {
     this.position = [0, 0];
     this.state = 'idle';
     this.moveCounter = 0;
+    this.requestingSwap = false;
     this.keyMovements = new Map(Object.entries({
       "ArrowLeft": [-1, 0],
       "ArrowRight": [1, 0],
@@ -22,9 +24,19 @@ class Cursor {
           this.state = "moving";
           this.moveCounter = 2;
           this.keyRepeat = true;
-          this.keyRepeatCounter = 3;
+          this.keyRepeatCounter = 8;
         }
       }
+    }
+
+    if (!keyboard.isDown(SWAP_KEY)) {
+      this.requestingSwap = false;
+    }
+    if (keyboard.isDown(SWAP_KEY) && !this.requestingSwap) {
+      const rightPosition = this.position.slice();
+      rightPosition[0]++;
+      board.requestSwap(this.position, rightPosition);
+      this.requestingSwap = true;
     }
 
     if (this.state == "moving") {

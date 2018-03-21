@@ -1,9 +1,9 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 
 class Block {
-  constructor({ state = BLOCK_STATE_INITIAL } = {}) {
+  constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
     this.state = state;
-    this.color = 'red';
+    this.color = color;
   }
 }
 
@@ -19,8 +19,8 @@ class BoardGrid {
     }
   }
 
-  get(i, j) { return this.grid[i][j]; }
-  put(i, j, new_state) { this.grid[i][j] = new_state; }
+  get(x, y) { return this.grid[x][y]; }
+  put(x, y, new_state) { this.grid[x][y] = new_state; }
 };
 
 class Board {
@@ -29,7 +29,25 @@ class Board {
     this.height = height;
     this.grid = new BoardGrid(width, height);
 
-    this.grid.put(1, 1, new Block());
+    this.grid.put(2, 1, new Block());
+    this.grid.put(3, 1, new Block({ color: 'purple' }));
+    this.grid.put(4, 1, new Block({ color: 'red' }));
+    this.grid.put(5, 1, new Block({ color: 'green' }));
+    this.grid.put(7, 1, new Block({ color: 'red' }));
+
+    this.grid.put(7, 2, new Block({ color: 'purple' }));
+    this.grid.put(2, 2, new Block({ color: 'green' }));
+
+    this.grid.put(4, 3, new Block({ color: 'purple' }));
+    this.grid.put(6, 3, new Block({ color: 'green' }));
+    this.grid.put(9, 3, new Block({ color: 'red' }));
+  }
+
+  requestSwap(positionOne, positionTwo) {
+    const blockOne = this.grid.get(...positionOne);
+    const blockTwo = this.grid.get(...positionTwo);
+    this.grid.put(...positionTwo, blockOne);
+    this.grid.put(...positionOne, blockTwo);
   }
 
   tick() {
