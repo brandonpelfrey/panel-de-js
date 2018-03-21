@@ -1,4 +1,5 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
+const DROP_SPEED = 10;
 
 class Block {
   constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
@@ -13,9 +14,9 @@ class BoardGrid {
     this.width = width;
     this.heigh = height;
 
-    this.grid = Array(height);
+    this.grid = Array(width);
     for (let col = 0; col < height; ++col) {
-      this.grid[col] = Array(width);
+      this.grid[col] = Array(height);
     }
   }
 
@@ -83,7 +84,81 @@ class Board {
 
   tick() {
     this._determineClears();
+    this._doGravity();
   }
+
+  _doGravity() {
+    // Does anything need to fall?
+    const fallSections = this._getFallSegments();
+    if(fallSections.length === 0) {
+      return;
+    }
+
+    // Do we need to wait for the cool-down of the last drop?
+    this.gravityCounter = ( this.gravityCounter || 10 ) - 1;
+    if(this.gravityCounter === 0) {
+      this.gravityCounter = null;
+      // We waited long enough, engage the fall logic.
+      fallSections.forEach( (segment) => { this._performSegmentFall(segment); } );
+    }
+  }
+
+  _performSegmentFall(segment) {
+    const fallingBlocks = [];
+
+    // Get all the blocks for this segment, remove them
+    for(const [x,y] of segment) {
+      const block = this.grid.get(x,y);
+      fallingBlocks.push([x,y,block]);
+      this.grid.put(x, y, null);
+    }
+
+    // Place them back down one square
+    for(const [x,y,block] of fallingBlocks) {
+      this.grid.put(x, y+1, block);
+    }
+  }
+
+  _getFallSegments() {
+
+    const results = [];
+    for (let x = 0; x < this.width; ++x) {
+
+      let y = (this.height-1); // Start at the bottom of the field
+      let currentSegment = [];
+
+      // Find the first open spot.
+      while( this.grid.get(x,y) != null && y >= 0) {
+        y --;
+      }
+
+      while(y >= 0) {
+        const whatsHere = this.grid.get(x,y);
+
+        if(whatsHere != null) {
+          currentSegment.push([x,y]);
+        } else {
+          // There's nothing at this cell. But if there is still an ongoing segment, then we just finished a segment
+          if(currentSegment.length > 0) {
+            results.push(currentSegment);
+            currentSegment = [];
+          }
+        }
+
+        y--;
+      }
+
+      // If there is an unfinished segment at this point, push it.
+      if(currentSegment.length > 0) {
+        results.push(currentSegment);
+        currentSegment = [];
+      }
+
+    }
+
+    return results;
+  }
+
 }
 
 export { Board };
