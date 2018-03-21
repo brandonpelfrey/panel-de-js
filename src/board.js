@@ -1,5 +1,5 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
-const DROP_SPEED = 10;
+const DROP_SPEED = 3;
 
 const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -36,7 +36,7 @@ class BoardGrid {
 };
 
 class Board {
-  constructor({ width = 8, height = 20 } = {}) {
+  constructor({ width = 6, height = 13 } = {}) {
     this.width = width;
     this.height = height;
     this.grid = new BoardGrid(width, height);
@@ -45,10 +45,10 @@ class Board {
 
   _initBoard() {
     for (let col = 0; col < this.width; col++) {
-      if (col == 4) {
+      if (col == 3) {
         continue;
       }
-      for (let row = this.height - 1; row > this.height - 18; row--) {
+      for (let row = this.height - 1; row > this.height - 8; row--) {
         const color = randomChoice(BLOCK_COLORS);
         this.grid.put(col, row, new Block({ color: color }));
       }
@@ -59,13 +59,13 @@ class Board {
     // Move everything on the playfield up.
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
-        this.grid.put(x,y, this.grid.get(x,y+1) );
-        this.grid.put(x,y+1, null);
+        this.grid.put(x, y, this.grid.get(x, y + 1));
+        this.grid.put(x, y + 1, null);
       }
     }
 
     for (let x = 0; x < this.width; x++) {
-      this.grid.put(x, this.height-1, new Block({ color: randomChoice(BLOCK_COLORS) }));
+      this.grid.put(x, this.height - 1, new Block({ color: randomChoice(BLOCK_COLORS) }));
     }
   }
 

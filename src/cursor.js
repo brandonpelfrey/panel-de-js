@@ -15,6 +15,12 @@ class Cursor {
     }));
   }
 
+  requestPushUp() {
+    if (this.position[1] > 0) {
+      this.position[1]--;
+    }
+  }
+
   tick(keyboard, board) {
     if (this.state == 'idle') {
       for (let [key, move] of this.keyMovements) {

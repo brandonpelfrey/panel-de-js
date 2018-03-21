@@ -2,7 +2,7 @@ import { Board } from './board.js';
 import { Cursor } from './cursor.js';
 import { Keyboard } from './keyboard.js';
 
-const TRASH_FREQUENCY = 60 * 4;
+const TRASH_FREQUENCY = 60 * 7;
 
 class Game {
   constructor() {
@@ -18,10 +18,11 @@ class Game {
   }
 
   _trashPusher() {
-    this.trashCounter = (this.trashCounter || TRASH_FREQUENCY ) - 1;
-    if(this.trashCounter <= 0) {
+    this.trashCounter = (this.trashCounter || TRASH_FREQUENCY) - 1;
+    if (this.trashCounter <= 0) {
       this.board.pushTrashUp();
       this.trashCounter = null;
+      this.cursor.requestPushUp();
     }
   }
 }

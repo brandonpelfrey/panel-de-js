@@ -1,9 +1,9 @@
 const Constants = {
-  TILE_SIZE: 32
+  TILE_SIZE: 48
 };
 const TS = Constants.TILE_SIZE;
 
-import {SpriteRenderer} from "./spriteRenderer.js"
+import { SpriteRenderer } from "./spriteRenderer.js"
 
 class Renderer {
   constructor(receiverId, board, spriteRenderer) {
@@ -25,7 +25,9 @@ class Renderer {
   }
 
   draw(game) {
-    this.canvasCtx.clearRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
+    this.frameNumber = (this.frameNumber || 0) + 1;
+    this.canvasCtx.fillStyle = '#222';
+    this.canvasCtx.fillRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
     this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
     this._drawCursor(game.cursor);
@@ -36,16 +38,19 @@ class Renderer {
       for (let col = 0; col < this.tileColumns; ++col) {
         const block = board.grid.get(col, row);
         if (block != null) {
-          this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * row, TS, TS);
+          this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * row, TS, TS, this.frameNumber, block.falling());
         }
       }
     }
   }
 
   _drawCursor(cursor) {
-    this.canvasCtx.strokeStyle = 'blue';
+    this.canvasCtx.strokeStyle = 'white';
+    const sideDash = [TS / 4, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2]
+    this.canvasCtx.setLineDash(sideDash)
     this.canvasCtx.lineWidth = 5;
-    this.canvasCtx.strokeRect(TS * cursor.position[0], TS * cursor.position[1], TS * 2, TS);
+    this.canvasCtx.strokeRect(TS * cursor.position[0], TS * cursor.position[1], TS, TS);
+    this.canvasCtx.strokeRect(TS * (cursor.position[0] + 1), TS * cursor.position[1], TS, TS);
   }
 
   _drawTileGrid(board) {
