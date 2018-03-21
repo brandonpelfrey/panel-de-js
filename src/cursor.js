@@ -3,7 +3,7 @@ const SWAP_KEY = " ";
 
 class Cursor {
   constructor() {
-    this.position = [0, 0];
+    this.position = [3, 10];
     this.state = 'idle';
     this.moveCounter = 0;
     this.requestingSwap = false;

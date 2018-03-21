@@ -1,6 +1,8 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 const DROP_SPEED = 10;
 
+const BLOCK_COLORS = ["red", "blue", "purple", "green", "yellow"];
+
 class Block {
   constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
     this.state = state;
@@ -12,10 +14,10 @@ class BoardGrid {
 
   constructor(width, height) {
     this.width = width;
-    this.heigh = height;
+    this.height = height;
 
     this.grid = Array(width);
-    for (let col = 0; col < height; ++col) {
+    for (let col = 0; col < width; ++col) {
       this.grid[col] = Array(height);
     }
   }
@@ -29,19 +31,20 @@ class Board {
     this.width = width;
     this.height = height;
     this.grid = new BoardGrid(width, height);
+    this._initBoard();
+  }
 
-    this.grid.put(2, 1, new Block());
-    this.grid.put(3, 1, new Block({ color: 'purple' }));
-    this.grid.put(4, 1, new Block({ color: 'red' }));
-    this.grid.put(5, 1, new Block({ color: 'green' }));
-    this.grid.put(7, 1, new Block({ color: 'red' }));
-
-    this.grid.put(7, 2, new Block({ color: 'purple' }));
-    this.grid.put(2, 2, new Block({ color: 'green' }));
-
-    this.grid.put(4, 3, new Block({ color: 'purple' }));
-    this.grid.put(6, 3, new Block({ color: 'green' }));
-    this.grid.put(9, 3, new Block({ color: 'red' }));
+  _initBoard() {
+    for (let col = 0; col < this.width; col++) {
+      if (col == 4) {
+        continue;
+      }
+      for (let row = this.height - 1; row > this.height - 9; row--) {
+        const randomIndex = Math.floor(Math.random() * BLOCK_COLORS.length);
+        const color = BLOCK_COLORS[randomIndex];
+        this.grid.put(col, row, new Block({ color: color }));
+      }
+    }
   }
 
   requestSwap(positionOne, positionTwo) {
@@ -76,6 +79,9 @@ class Board {
         x++
       } else {
         y++;
+      }
+      if (x >= this.width || y > this.height) {
+        break;
       }
       next = this.grid.get(x, y);
     } while (next && next.color == color);
