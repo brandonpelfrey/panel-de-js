@@ -66,7 +66,7 @@ class Board {
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
         const block = this.grid.get(x, y);
-        if (block) {
+        if (block && !block.falling()) {
           let rowClears = this._getLineClears(x, y, block.color, true);
           let colClears = this._getLineClears(x, y, block.color, false);
           allClears.push(...rowClears);
@@ -91,7 +91,7 @@ class Board {
         break;
       }
       next = this.grid.get(x, y);
-    } while (next && next.color == color);
+    } while (next && next.color == color && !block.falling());
     return clears.length >= 3 ? clears : [];
   }
 
@@ -131,7 +131,7 @@ class Board {
     if(this.gravityCounter === 0) {
       this.gravityCounter = null;
       // We waited long enough, engage the fall logic.
-      fallSections.forEach( (segment) => { this._performSegmentFall(segment); } );
+      fallSections.forEach((segment) => { this._performSegmentFall(segment); });
     }
   }
 
@@ -139,15 +139,15 @@ class Board {
     const fallingBlocks = [];
 
     // Get all the blocks for this segment, remove them
-    for(const [x,y] of segment) {
-      const block = this.grid.get(x,y);
-      fallingBlocks.push([x,y,block]);
+    for (const [x, y] of segment) {
+      const block = this.grid.get(x, y);
+      fallingBlocks.push([x, y, block]);
       this.grid.put(x, y, null);
     }
 
     // Place them back down one square
-    for(const [x,y,block] of fallingBlocks) {
-      this.grid.put(x, y+1, block);
+    for (const [x, y, block] of fallingBlocks) {
+      this.grid.put(x, y + 1, block);
     }
   }
 
@@ -156,22 +156,22 @@ class Board {
     const results = [];
     for (let x = 0; x < this.width; ++x) {
 
-      let y = (this.height-1); // Start at the bottom of the field
+      let y = (this.height - 1); // Start at the bottom of the field
       let currentSegment = [];
 
       // Find the first open spot.
-      while( this.grid.get(x,y) != null && y >= 0) {
-        y --;
+      while (this.grid.get(x, y) != null && y >= 0) {
+        y--;
       }
 
-      while(y >= 0) {
-        const whatsHere = this.grid.get(x,y);
+      while (y >= 0) {
+        const whatsHere = this.grid.get(x, y);
 
-        if(whatsHere != null) {
-          currentSegment.push([x,y]);
+        if (whatsHere != null) {
+          currentSegment.push([x, y]);
         } else {
           // There's nothing at this cell. But if there is still an ongoing segment, then we just finished a segment
-          if(currentSegment.length > 0) {
+          if (currentSegment.length > 0) {
             results.push(currentSegment);
             currentSegment = [];
           }
@@ -181,7 +181,7 @@ class Board {
       }
 
       // If there is an unfinished segment at this point, push it.
-      if(currentSegment.length > 0) {
+      if (currentSegment.length > 0) {
         results.push(currentSegment);
         currentSegment = [];
       }
