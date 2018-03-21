@@ -91,7 +91,7 @@ class Board {
         break;
       }
       next = this.grid.get(x, y);
-    } while (next && next.color == color && !block.falling());
+    } while (next && next.color == color && !next.falling());
     return clears.length >= 3 ? clears : [];
   }
 
