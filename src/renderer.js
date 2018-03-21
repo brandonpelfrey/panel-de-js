@@ -25,9 +25,17 @@ class Renderer {
   }
 
   draw(game) {
-    this.frameNumber = (this.frameNumber || 0) + 1;
+    this.canvasCtx.setTransform(1,0,0,1,0,0);
     this.canvasCtx.fillStyle = '#222';
     this.canvasCtx.fillRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
+
+    //TODO sync this with the trash rate
+    this.yscroll = (this.yscroll || 0) + TS/(60*7);
+    if(this.yscroll > TS) {
+      this.yscroll = 0;
+    }
+    this.canvasCtx.setTransform(1,0,0,1,0,Math.floor(-this.yscroll));
+    this.frameNumber = (this.frameNumber || 0) + 1;
     this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
     this._drawCursor(game.cursor);
