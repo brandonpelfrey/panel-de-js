@@ -3,8 +3,10 @@ const Constants = {
 };
 const TS = Constants.TILE_SIZE;
 
+import {SpriteRenderer} from "./spriteRenderer.js"
+
 class Renderer {
-  constructor(receiverId, board) {
+  constructor(receiverId, board, spriteRenderer) {
     this.receiver = document.getElementById(receiverId);
     this.tileColumns = board.width;
     this.tileRows = board.height;
@@ -12,6 +14,7 @@ class Renderer {
     const canvasEl = this._createCanvasElement();
     this.receiver.appendChild(canvasEl);
     this.canvasCtx = canvasEl.getContext('2d');
+    this.spriteRenderer = new SpriteRenderer();
   }
 
   _createCanvasElement() {
@@ -33,8 +36,7 @@ class Renderer {
       for (let col = 0; col < this.tileColumns; ++col) {
         const block = board.grid.get(col, row);
         if (block != null) {
-          this.canvasCtx.fillStyle = block.color;
-          this.canvasCtx.fillRect(TS * col, TS * row, TS, TS);
+          this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * row, TS, TS);
         }
       }
     }

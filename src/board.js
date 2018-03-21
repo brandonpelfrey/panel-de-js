@@ -1,13 +1,14 @@
 const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
 const DROP_SPEED = 10;
 
-const BLOCK_COLORS = ["red", "blue", "purple", "green", "yellow"];
+const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
 
 class Block {
   constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
     this.state = state;
     this.color = color;
+    this.spriteIndex = BLOCK_COLORS.indexOf(color);
   }
 
   falling(newValue) {
@@ -48,8 +49,7 @@ class Board {
         continue;
       }
       for (let row = this.height - 1; row > this.height - 18; row--) {
-        const randomIndex = Math.floor(Math.random() * BLOCK_COLORS.length);
-        const color = BLOCK_COLORS[randomIndex];
+        const color = randomChoice(BLOCK_COLORS);
         this.grid.put(col, row, new Block({ color: color }));
       }
     }
@@ -118,32 +118,32 @@ class Board {
   _doGravity() {
     // Does anything need to fall?
     const fallSections = this._getFallSegments();
-    
+
     // HACK : No good way to detect end of falling for a block, 
     // so... just set everything not falling, then update the ones
     // that still are.
     for (let x = 0; x < this.width; ++x) {
       for (let y = 0; y < this.height; ++y) {
-        const block = this.grid.get(x,y);
-        if(block) {
+        const block = this.grid.get(x, y);
+        if (block) {
           block.falling(false);
         }
       }
     }
-    for(const fallingSegment of fallSections) {
-      for(const [x,y] of fallingSegment) {
-        this.grid.get(x,y).falling(true);
+    for (const fallingSegment of fallSections) {
+      for (const [x, y] of fallingSegment) {
+        this.grid.get(x, y).falling(true);
       }
     }
     // </HACK>
 
-    if(fallSections.length === 0) {
+    if (fallSections.length === 0) {
       return;
     }
 
     // Do we need to wait for the cool-down of the last drop?
-    this.gravityCounter = ( this.gravityCounter || DROP_SPEED ) - 1;
-    if(this.gravityCounter === 0) {
+    this.gravityCounter = (this.gravityCounter || DROP_SPEED) - 1;
+    if (this.gravityCounter === 0) {
       this.gravityCounter = null;
       // We waited long enough, engage the fall logic.
       fallSections.forEach((segment) => { this._performSegmentFall(segment); });
