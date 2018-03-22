@@ -61,6 +61,7 @@ class Board {
     this.grid = new BoardGrid(width, height);
     this.cursors = [];
     this.freezeCounter = 0;
+    this.pendingScrolls = 0;
     this._initBoard();
   }
 
@@ -98,6 +99,18 @@ class Board {
     }
     this.grid.put(...positionTwo, blockOne);
     this.grid.put(...positionOne, blockTwo);
+  }
+
+  requestScroll() {
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const block = this.grid.get(x, y);
+        if (block && block.state() == BLOCK_STATE_POPPING) {
+          return;
+        }
+      }
+    }
+    this.pendingScrolls++;
   }
 
   _handleBlockPopping() {
@@ -163,10 +176,17 @@ class Board {
       this.freezeCounter--;
     } else {
       this.scroll = (this.scroll || 0) + SCROLL_PER_FRAME;
-      if (this.scroll > 1) {
-        this.scroll--;
-        this._pushTrash();
+    }
+    if (this.pendingScrolls > 0) {
+      this.scroll += SCROLL_PER_FRAME * 20;
+    }
+    if (this.scroll > 1) {
+      this.scroll--;
+      if (this.pendingScrolls > 0) {
+        this.pendingScrolls--;
+        this.freezeCounter += 30;
       }
+      this._pushTrash();
     }
   }
 

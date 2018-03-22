@@ -1,6 +1,6 @@
 const CURSOR_WIDTH = 2;
 
-import { UP, DOWN, LEFT, RIGHT, SWAP } from './keyboard.js';
+import { UP, DOWN, LEFT, RIGHT, SWAP, SCROLL } from './keyboard.js';
 
 class Cursor {
   constructor(keyboard, board, color = "white") {
@@ -8,6 +8,7 @@ class Cursor {
     this.state = 'idle';
     this.moveCounter = 0;
     this.requestingSwap = false;
+    this.requestingScroll = false;
     this.keyboard = keyboard;
     this.board = board;
     this.color = color;
@@ -46,6 +47,13 @@ class Cursor {
       rightPosition[0]++;
       this.board.requestSwap(this.position, rightPosition);
       this.requestingSwap = true;
+    }
+    if (this.keyboard.isDown(SCROLL) && !this.requestingScroll) {
+      this.board.requestScroll();
+      this.requestingScroll = true;
+    }
+    if (!this.keyboard.isDown(SCROLL)) {
+      this.requestingScroll = false;
     }
 
     if (this.state == "moving") {
