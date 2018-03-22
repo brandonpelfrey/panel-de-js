@@ -43,7 +43,7 @@ class Renderer {
       for (let col = 0; col < this.tileColumns; ++col) {
         const block = board.grid.get(col, row);
         if (block != null) {
-          this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * row, TS, TS, this.frameNumber, block.falling());
+          this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * row, TS, TS, this.frameNumber, block);
         }
       }
     }

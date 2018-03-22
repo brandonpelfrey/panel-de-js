@@ -1,22 +1,39 @@
-const BLOCK_STATE_INITIAL = Symbol("BLOCK_STATE_INITIAL");
+export const BLOCK_STATE_NORMAL  = Symbol("BLOCK_STATE_NORMAL");
+export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
+export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
+
 const DROP_SPEED = 3;
+const BLOCK_POP_TIME = 60;
 
 const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
 
 class Block {
-  constructor({ state = BLOCK_STATE_INITIAL, color = 'red' } = {}) {
-    this.state = state;
+  constructor({ state = BLOCK_STATE_NORMAL, color = 'red' } = {}) {
+    this._state = state;
     this.color = color;
     this.spriteIndex = BLOCK_COLORS.indexOf(color);
   }
 
-  falling(newValue) {
-    if (newValue !== undefined) {
-      this.isFalling = newValue;
+  state(newState) {
+    if(newState !== undefined) {
+      this._state = newState;
     }
-    return this.isFalling;
+    return this._state;
   }
+
+  popTime( newTimeValue ) {
+    if(newTimeValue !== undefined) {
+      this._popTime = newTimeValue;
+    }
+    return this._popTime;
+  }
+
+  falling() {
+    return this._state == BLOCK_STATE_FALLING;
+  }
+
+
 }
 
 class BoardGrid {
@@ -76,20 +93,36 @@ class Board {
     this.grid.put(...positionOne, blockTwo);
   }
 
-  _determineClears() {
-    let allClears = [];
+  _handleBlockPopping() {
+    let newClears = [];
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
         const block = this.grid.get(x, y);
-        if (block && !block.falling()) {
+        // Can only start popping a block if it is in the normal state.
+        if (block && block.state() == BLOCK_STATE_NORMAL ) {
           let rowClears = this._getLineClears(x, y, block.color, true);
           let colClears = this._getLineClears(x, y, block.color, false);
-          allClears.push(...rowClears);
-          allClears.push(...colClears);
+          for(const xy of rowClears.concat(colClears)) {
+            this.grid.get(...xy).state(BLOCK_STATE_POPPING);
+            this.grid.get(...xy).popTime(BLOCK_POP_TIME);
+          }
         }
       }
     }
-    allClears.forEach((xy) => this.grid.put(...xy, null));
+
+    // decrement popping block timers
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const block = this.grid.get(x, y);
+        if(block != null && block.state() == BLOCK_STATE_POPPING) {
+          block.popTime( block.popTime() - 1 );
+
+          if(block.popTime() <= 0) {
+            this.grid.put(x, y, null);
+          }
+        }
+      }
+    }
   }
 
   _getLineClears(x, y, color, isRow) {
@@ -106,36 +139,24 @@ class Board {
         break;
       }
       next = this.grid.get(x, y);
-    } while (next && next.color == color && !next.falling());
+    } while (next && next.color == color && next.state() === BLOCK_STATE_NORMAL);
     return clears.length >= 3 ? clears : [];
   }
 
   tick() {
-    this._determineClears();
     this._doGravity();
+    this._handleBlockPopping();
   }
 
   _doGravity() {
     // Does anything need to fall?
     const fallSections = this._getFallSegments();
 
-    // HACK : No good way to detect end of falling for a block, 
-    // so... just set everything not falling, then update the ones
-    // that still are.
-    for (let x = 0; x < this.width; ++x) {
-      for (let y = 0; y < this.height; ++y) {
-        const block = this.grid.get(x, y);
-        if (block) {
-          block.falling(false);
-        }
-      }
-    }
     for (const fallingSegment of fallSections) {
       for (const [x, y] of fallingSegment) {
-        this.grid.get(x, y).falling(true);
+        this.grid.get(x, y).state(BLOCK_STATE_FALLING);
       }
     }
-    // </HACK>
 
     if (fallSections.length === 0) {
       return;
@@ -143,11 +164,48 @@ class Board {
 
     // Do we need to wait for the cool-down of the last drop?
     this.gravityCounter = (this.gravityCounter || DROP_SPEED) - 1;
-    if (this.gravityCounter === 0) {
-      this.gravityCounter = null;
-      // We waited long enough, engage the fall logic.
-      fallSections.forEach((segment) => { this._performSegmentFall(segment); });
+    if (this.gravityCounter !== 0) {
+      return;
     }
+
+    // Reset the gravity counter.
+    this.gravityCounter = null;
+    
+    // We waited long enough, engage the fall logic.
+    fallSections.forEach((segment) => { this._performSegmentFall(segment); });
+    
+    // Update our segments to reflect the fact that the blocks moved
+    for(const segment of fallSections) {
+      for(let i=0; i<segment.length; ++i) {
+        segment[i][1] ++ ;
+      }
+    }
+
+    // After doing all of the segment falls, if there is something under this segment,
+    // then this is no longer falling.
+    for(const segment of fallSections) {
+      const lowestXY = this._lowestBlockInSegment(segment);
+
+      // Is there a block beneath the bottom of the segment after the fall?
+      const somethingBelowSegment = this.grid.get(lowestXY[0], lowestXY[1] + 1) != null;
+      const segmentRestingOnBottom = lowestXY[1] == this.height - 1;
+      if(somethingBelowSegment || segmentRestingOnBottom ) {
+        for(const xy of segment) {
+          this.grid.get(...xy).state(BLOCK_STATE_NORMAL); // Need to do +1 because it's already been moved
+        }
+      }
+    }
+
+  }
+
+  _lowestBlockInSegment(segment) {
+    let lowestXY = [-999999,-999999];
+    for(const xy of segment) {
+      if(xy[1] > lowestXY[1]) {
+        lowestXY = xy;
+      }
+    }
+    return lowestXY;
   }
 
   _performSegmentFall(segment) {
