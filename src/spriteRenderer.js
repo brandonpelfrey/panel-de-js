@@ -1,7 +1,7 @@
 import { BLOCK_STATE_FALLING, BLOCK_STATE_POPPING, BLOCK_STATE_NORMAL } from './board.js';
 
 const image = new Image();
-image.src = "src/sprites.png"
+image.src = "src/sprites.png";
 
 const TILE_SIZE = 16;
 

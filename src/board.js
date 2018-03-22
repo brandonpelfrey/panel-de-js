@@ -1,3 +1,5 @@
+import {ComboNumberBoxObject} from './objects/ComboNumberBoxObject.js';
+
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
 export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
@@ -62,6 +64,7 @@ class Board {
     this.cursors = [];
     this.freezeCounter = 0;
     this.pendingScrolls = 0;
+    this.gameObjects = [];
     this._initBoard();
   }
 
@@ -122,10 +125,18 @@ class Board {
         if (block && block.state() == BLOCK_STATE_NORMAL) {
           let rowClears = this._getLineClears(x, y, block.color, true);
           let colClears = this._getLineClears(x, y, block.color, false);
-          for (const xy of rowClears.concat(colClears)) {
+          let allClears = rowClears.concat(colClears);
+          // Initiate popping!
+          for (const xy of allClears) {
             this.grid.get(...xy).state(BLOCK_STATE_POPPING);
             this.grid.get(...xy).popTime(BLOCK_POP_TIME);
             this.freezeCounter += FREEZE_TIME_PER_POP;
+          }
+
+
+          if(allClears.length !== 0) {
+            // TODO number
+            this.gameObjects.push( new ComboNumberBoxObject({boardX: x, boardY: y, number: 4}));
           }
         }
       }
@@ -169,6 +180,16 @@ class Board {
     this._doGravity();
     this._handleBlockPopping();
     this._tickScroll();
+    this._tickAndKillGameObjects();
+  }
+
+  _tickAndKillGameObjects() {
+
+    for(const gameObject of this.gameObjects) {
+      gameObject.tick();
+    }
+
+    this.gameObjects = this.gameObjects.filter( obj => !obj.shouldDie() );
   }
 
   _tickScroll() {

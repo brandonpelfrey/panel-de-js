@@ -17,6 +17,10 @@ class Renderer {
     this.spriteRenderer = new SpriteRenderer();
   }
 
+  tileSize() { 
+    return TS;
+  }
+
   _createCanvasElement() {
     const canvasEl = document.createElement('canvas');
     canvasEl.width = this.tileColumns * Constants.TILE_SIZE;
@@ -33,9 +37,19 @@ class Renderer {
     this.yscroll = scroll * TS;
     this.canvasCtx.setTransform(1, 0, 0, 1, 0, Math.floor(-this.yscroll));
     this.frameNumber = (this.frameNumber || 0) + 1;
+
     this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
+    
     game.cursors.forEach((c) => this._drawCursor(c));
+
+    this._drawObjects(game.board);
+  }
+
+  _drawObjects(board) {
+    for(const gameObject of board.gameObjects) {
+      gameObject.draw(this);
+    }
   }
 
   _drawBlocks(board) {
@@ -55,8 +69,8 @@ class Renderer {
 
   _drawCursor(cursor) {
     this.canvasCtx.strokeStyle = cursor.color;
-    const sideDash = [TS / 4, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2]
-    this.canvasCtx.setLineDash(sideDash)
+    const sideDash = [TS / 4, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2];
+    this.canvasCtx.setLineDash(sideDash);
     this.canvasCtx.lineWidth = 5;
     this.canvasCtx.strokeRect(TS * cursor.position[0], TS * cursor.position[1], TS, TS);
     this.canvasCtx.strokeRect(TS * (cursor.position[0] + 1), TS * cursor.position[1], TS, TS);
