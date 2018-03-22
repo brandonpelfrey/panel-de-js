@@ -37,8 +37,7 @@ class Renderer {
     this.yscroll = scroll * TS;
     this.canvasCtx.setTransform(1, 0, 0, 1, 0, Math.floor(-this.yscroll));
     this.frameNumber = (this.frameNumber || 0) + 1;
-
-    this._drawTileGrid(game.board);
+    //this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
     
     game.cursors.forEach((c) => this._drawCursor(c));
@@ -68,12 +67,15 @@ class Renderer {
   }
 
   _drawCursor(cursor) {
+    const cursorPulse = this.frameNumber % 50 > 25 ? -1 : -4;
+    const w = TS + cursorPulse * 2;
+
     this.canvasCtx.strokeStyle = cursor.color;
-    const sideDash = [TS / 4, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2];
-    this.canvasCtx.setLineDash(sideDash);
+    const sideDash = [w / 4, w / 2, w / 2, w / 2, w / 2, w / 2, w / 2, w / 2, w / 2];
+    this.canvasCtx.setLineDash(sideDash)
     this.canvasCtx.lineWidth = 5;
-    this.canvasCtx.strokeRect(TS * cursor.position[0], TS * cursor.position[1], TS, TS);
-    this.canvasCtx.strokeRect(TS * (cursor.position[0] + 1), TS * cursor.position[1], TS, TS);
+    this.canvasCtx.strokeRect(TS * cursor.position[0] - cursorPulse, TS * cursor.position[1] - cursorPulse, w, w);
+    this.canvasCtx.strokeRect(TS * (cursor.position[0] + 1) - cursorPulse, TS * cursor.position[1] - cursorPulse, w, w);
   }
 
   _drawTileGrid(board) {
