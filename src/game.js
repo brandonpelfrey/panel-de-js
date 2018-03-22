@@ -14,27 +14,15 @@ class Game {
     this.keyboardTwo = new Keyboard({ up: "Numpad8", down: "Numpad5", right: "Numpad6", left: "Numpad4", swap: "NumpadEnter" });
     const cursorTwo = new Cursor(this.keyboardTwo, this.board, "#B8B");
 
+    this.board.addCursor(cursor);
+
     this.cursors = [cursor] //, cursorTwo];
     this.scroll = 0;
+    this.freezeCounter = 0;
   }
 
   tick() {
-    this.cursors.forEach((c) => c.tick());
     this.board.tick();
-    this._tickScroll();
-  }
-
-  _tickScroll() {
-    this.scroll = this.scroll + SCROLL_PER_FRAME;
-    if (this.scroll > 1) {
-      this.scroll--;
-      this._pushTrash();
-    }
-  }
-
-  _pushTrash() {
-    this.board.pushTrashUp();
-    this.cursors.forEach((c) => c.requestPushUp());
   }
 }
 

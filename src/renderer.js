@@ -29,8 +29,8 @@ class Renderer {
     this.canvasCtx.fillStyle = '#222';
     this.canvasCtx.fillRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
 
-    const gameScroll = game.scroll;
-    this.yscroll = gameScroll * TS;
+    const scroll = game.board.scroll;
+    this.yscroll = scroll * TS;
     this.canvasCtx.setTransform(1, 0, 0, 1, 0, Math.floor(-this.yscroll));
     this.frameNumber = (this.frameNumber || 0) + 1;
     this._drawTileGrid(game.board);

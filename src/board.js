@@ -3,7 +3,9 @@ export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
 export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
 
 const DROP_SPEED = 3;
-const BLOCK_POP_TIME = 60;
+const BLOCK_POP_TIME = 80;
+const SCROLL_PER_FRAME = 1 / (60 * 7);
+const FREEZE_TIME_PER_POP = 40;
 
 const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -57,7 +59,13 @@ class Board {
     this.width = width;
     this.height = height;
     this.grid = new BoardGrid(width, height);
+    this.cursors = [];
+    this.freezeCounter = 0;
     this._initBoard();
+  }
+
+  addCursor(cursor) {
+    this.cursors.push(cursor);
   }
 
   _initBoard() {
@@ -75,25 +83,10 @@ class Board {
 
   _generateRow() {
     const blocks = Array(this.width);
-    for(let col = 0; col < this.width; col++) {
-      blocks[col] = new Block({color: randomChoice(BLOCK_COLORS)});
+    for (let col = 0; col < this.width; col++) {
+      blocks[col] = new Block({ color: randomChoice(BLOCK_COLORS) });
     }
     return blocks;
-  }
-
-  pushTrashUp() {
-    // Move everything on the playfield up.
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        this.grid.put(x, y, this.grid.get(x, y + 1));
-        this.grid.put(x, y + 1, null);
-      }
-    }
-
-    for (let x = 0; x < this.width; x++) {
-      this.grid.put(x, this.height - 1, this.nextRow[x]); 
-    }
-    this.nextRow = this._generateRow();
   }
 
   requestSwap(positionOne, positionTwo) {
@@ -119,6 +112,7 @@ class Board {
           for (const xy of rowClears.concat(colClears)) {
             this.grid.get(...xy).state(BLOCK_STATE_POPPING);
             this.grid.get(...xy).popTime(BLOCK_POP_TIME);
+            this.freezeCounter += FREEZE_TIME_PER_POP;
           }
         }
       }
@@ -158,9 +152,44 @@ class Board {
   }
 
   tick() {
+    this.cursors.forEach((c) => c.tick());
     this._doGravity();
     this._handleBlockPopping();
+    this._tickScroll();
   }
+
+  _tickScroll() {
+    if (this.freezeCounter > 0) {
+      this.freezeCounter--;
+    } else {
+      this.scroll = (this.scroll || 0) + SCROLL_PER_FRAME;
+      if (this.scroll > 1) {
+        this.scroll--;
+        this._pushTrash();
+      }
+    }
+  }
+
+  _pushTrash() {
+    this._pushTrashUp();
+    this.cursors.forEach((c) => c.requestPushUp());
+  }
+
+  _pushTrashUp() {
+    // Move everything on the playfield up.
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        this.grid.put(x, y, this.grid.get(x, y + 1));
+        this.grid.put(x, y + 1, null);
+      }
+    }
+
+    for (let x = 0; x < this.width; x++) {
+      this.grid.put(x, this.height - 1, this.nextRow[x]);
+    }
+    this.nextRow = this._generateRow();
+  }
+
 
   _doGravity() {
     // Does anything need to fall?
