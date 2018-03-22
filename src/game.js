@@ -8,11 +8,11 @@ class Game {
   constructor() {
     this.keyboard = new Keyboard();
     this.board = new Board();
-    this.cursor = new Cursor();
+    this.cursor = new Cursor(this.keyboard, this.board);
   }
 
   tick() {
-    this.cursor.tick(this.keyboard, this.board);
+    this.cursor.tick();
     this.board.tick();
     this._trashPusher();
   }
