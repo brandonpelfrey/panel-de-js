@@ -1,14 +1,21 @@
-import {ComboNumberBoxObject} from './objects/ComboNumberBoxObject.js';
-import { ComboPopParticles } from './objects/ComboPopParticles.js';
+<< << << < HEAD
+import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js';
+import { ComboPopParticles } from './objects/ComboPopParticles.js'; ===
+=== =
+import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js'; >>>
+>>> > 11 a6c1e...Adding swap animation and BLOOP_MODE
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
 export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
+export const BLOCK_STATE_MOVING = Symbol("BLOCK_STATE_MOVING");
 
 const DROP_SPEED = 3;
 const BLOCK_POP_TIME = 80;
 const SCROLL_PER_FRAME = 1 / (60 * 7);
 const FREEZE_TIME_PER_POP = 40;
+
+const BLOOP_MODE = false;
 
 const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -38,7 +45,31 @@ class Block {
     return this._state == BLOCK_STATE_FALLING;
   }
 
+  previousPosition(opts) {
+    if (opts) {
+      this.lastPosition = opts;
+      if (!BLOOP_MODE) {
+        this.state(BLOCK_STATE_MOVING);
+      }
+    }
+    return this.lastPosition;
+  }
 
+  movePosition(opts) {
+    if (opts) {
+      this._movePosition = opts;
+    }
+    return this._movePosition;
+  }
+
+  tick() {
+    if (this._movePosition > 0) {
+      this._movePosition -= 1 / 4;
+      if (this._movePosition <= 0) {
+        this.state(BLOCK_STATE_NORMAL);
+      }
+    }
+  }
 }
 
 class BoardGrid {
@@ -103,6 +134,14 @@ class Board {
     }
     this.grid.put(...positionTwo, blockOne);
     this.grid.put(...positionOne, blockTwo);
+    if (blockOne) {
+      blockOne.previousPosition(positionOne);
+      blockOne.movePosition(1);
+    }
+    if (blockTwo) {
+      blockTwo.previousPosition(positionTwo);
+      blockTwo.movePosition(1);
+    }
   }
 
   requestScroll() {
@@ -135,13 +174,13 @@ class Board {
           }
 
 
-          if(allClears.length !== 0) {
+          if (allClears.length !== 0) {
             // TODO number
-            this.gameObjects.push( new ComboNumberBoxObject({boardX: x, boardY: y, number: 4}));
+            this.gameObjects.push(new ComboNumberBoxObject({ boardX: x, boardY: y, number: 4 }));
 
             let initialDelay = 15;
-            for(let [x,y] of allClears) {
-              this.gameObjects.push( new ComboPopParticles({boardX: x, boardY: y, initialDelay: initialDelay}));
+            for (let [x, y] of allClears) {
+              this.gameObjects.push(new ComboPopParticles({ boardX: x, boardY: y, initialDelay: initialDelay }));
               initialDelay += 15;
             }
           }
@@ -184,6 +223,14 @@ class Board {
   }
 
   tick() {
+    for (let col = 0; col < this.width; col++) {
+      for (let row = 0; row < this.height; row++) {
+        let block = this.grid.get(col, row);
+        if (block) {
+          block.tick();
+        }
+      }
+    }
     this.cursors.forEach((c) => c.tick());
     this._doGravity();
     this._handleBlockPopping();
@@ -192,12 +239,11 @@ class Board {
   }
 
   _tickAndKillGameObjects() {
-
-    for(const gameObject of this.gameObjects) {
+    for (const gameObject of this.gameObjects) {
       gameObject.tick();
     }
 
-    this.gameObjects = this.gameObjects.filter( obj => !obj.shouldDie() );
+    this.gameObjects = this.gameObjects.filter(obj => !obj.shouldDie());
   }
 
   _tickScroll() {
@@ -332,13 +378,17 @@ class Board {
       while (y >= 0) {
         const whatsHere = this.grid.get(x, y);
 
-        if (whatsHere != null) {
+        if (whatsHere != null && whatsHere.state() !== BLOCK_STATE_MOVING) {
           currentSegment.push([x, y]);
         } else {
           // There's nothing at this cell. But if there is still an ongoing segment, then we just finished a segment
           if (currentSegment.length > 0) {
             results.push(currentSegment);
             currentSegment = [];
+          }
+
+          while (y >= 0 && this.grid.get(x, y) != null) {
+            y--;
           }
         }
 
