@@ -1,9 +1,5 @@
-<< << << < HEAD
 import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js';
-import { ComboPopParticles } from './objects/ComboPopParticles.js'; ===
-=== =
-import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js'; >>>
->>> > 11 a6c1e...Adding swap animation and BLOOP_MODE
+import { ComboPopParticles } from './objects/ComboPopParticles.js'; 
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
