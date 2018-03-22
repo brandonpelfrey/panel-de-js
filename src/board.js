@@ -70,6 +70,15 @@ class Board {
         this.grid.put(col, row, new Block({ color: color }));
       }
     }
+    this.nextRow = this._generateRow();
+  }
+
+  _generateRow() {
+    const blocks = Array(this.width);
+    for(let col = 0; col < this.width; col++) {
+      blocks[col] = new Block({color: randomChoice(BLOCK_COLORS)});
+    }
+    return blocks;
   }
 
   pushTrashUp() {
@@ -82,8 +91,9 @@ class Board {
     }
 
     for (let x = 0; x < this.width; x++) {
-      this.grid.put(x, this.height - 1, new Block({ color: randomChoice(BLOCK_COLORS) }));
+      this.grid.put(x, this.height - 1, this.nextRow[x]); 
     }
+    this.nextRow = this._generateRow();
   }
 
   requestSwap(positionOne, positionTwo) {

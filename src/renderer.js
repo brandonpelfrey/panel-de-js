@@ -47,6 +47,10 @@ class Renderer {
         }
       }
     }
+    for (let col = 0; col < this.tileColumns; col++) {
+      const block = board.nextRow[col];
+      this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * this.tileRows, TS, TS, this.frameNumber, block, true);
+    }
   }
 
   _drawCursor(cursor) {
