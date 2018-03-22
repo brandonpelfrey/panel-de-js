@@ -2,19 +2,19 @@ import { Board } from './board.js';
 import { Cursor } from './cursor.js';
 import { Keyboard } from './keyboard.js';
 
-const SCROLL_PER_FRAME = 1/(60 * 7);
+const SCROLL_PER_FRAME = 1 / (60 * 7);
 
 class Game {
   constructor() {
     this.board = new Board();
 
-    this.keyboard = new Keyboard({ swap: "Numpad0" });
+    this.keyboard = new Keyboard({});
     const cursor = new Cursor(this.keyboard, this.board);
 
-    this.keyboardTwo = new Keyboard({ up: "KeyW", down: "KeyS", right: "KeyD", left: "KeyA", swap: "Space" });
+    this.keyboardTwo = new Keyboard({ up: "Numpad8", down: "Numpad5", right: "Numpad6", left: "Numpad4", swap: "NumpadEnter" });
     const cursorTwo = new Cursor(this.keyboardTwo, this.board, "#B8B");
 
-    this.cursors = [cursor, cursorTwo];
+    this.cursors = [cursor] //, cursorTwo];
     this.scroll = 0;
   }
 
@@ -26,15 +26,15 @@ class Game {
 
   _tickScroll() {
     this.scroll = this.scroll + SCROLL_PER_FRAME;
-    if(this.scroll > 1) {
+    if (this.scroll > 1) {
       this.scroll--;
       this._pushTrash();
     }
   }
 
   _pushTrash() {
-      this.board.pushTrashUp();
-      this.cursors.forEach((c) => c.requestPushUp());
+    this.board.pushTrashUp();
+    this.cursors.forEach((c) => c.requestPushUp());
   }
 }
 
