@@ -1,4 +1,4 @@
-export const BLOCK_STATE_NORMAL  = Symbol("BLOCK_STATE_NORMAL");
+export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
 export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
 
@@ -16,14 +16,14 @@ class Block {
   }
 
   state(newState) {
-    if(newState !== undefined) {
+    if (newState !== undefined) {
       this._state = newState;
     }
     return this._state;
   }
 
-  popTime( newTimeValue ) {
-    if(newTimeValue !== undefined) {
+  popTime(newTimeValue) {
+    if (newTimeValue !== undefined) {
       this._popTime = newTimeValue;
     }
     return this._popTime;
@@ -89,6 +89,10 @@ class Board {
   requestSwap(positionOne, positionTwo) {
     const blockOne = this.grid.get(...positionOne);
     const blockTwo = this.grid.get(...positionTwo);
+    if (blockOne && blockOne.state() == BLOCK_STATE_POPPING ||
+      blockTwo && blockTwo.state() == BLOCK_STATE_POPPING) {
+      return;
+    }
     this.grid.put(...positionTwo, blockOne);
     this.grid.put(...positionOne, blockTwo);
   }
@@ -99,10 +103,10 @@ class Board {
       for (let y = 0; y < this.height; y++) {
         const block = this.grid.get(x, y);
         // Can only start popping a block if it is in the normal state.
-        if (block && block.state() == BLOCK_STATE_NORMAL ) {
+        if (block && block.state() == BLOCK_STATE_NORMAL) {
           let rowClears = this._getLineClears(x, y, block.color, true);
           let colClears = this._getLineClears(x, y, block.color, false);
-          for(const xy of rowClears.concat(colClears)) {
+          for (const xy of rowClears.concat(colClears)) {
             this.grid.get(...xy).state(BLOCK_STATE_POPPING);
             this.grid.get(...xy).popTime(BLOCK_POP_TIME);
           }
@@ -114,10 +118,10 @@ class Board {
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
         const block = this.grid.get(x, y);
-        if(block != null && block.state() == BLOCK_STATE_POPPING) {
-          block.popTime( block.popTime() - 1 );
+        if (block != null && block.state() == BLOCK_STATE_POPPING) {
+          block.popTime(block.popTime() - 1);
 
-          if(block.popTime() <= 0) {
+          if (block.popTime() <= 0) {
             this.grid.put(x, y, null);
           }
         }
@@ -170,27 +174,27 @@ class Board {
 
     // Reset the gravity counter.
     this.gravityCounter = null;
-    
+
     // We waited long enough, engage the fall logic.
     fallSections.forEach((segment) => { this._performSegmentFall(segment); });
-    
+
     // Update our segments to reflect the fact that the blocks moved
-    for(const segment of fallSections) {
-      for(let i=0; i<segment.length; ++i) {
-        segment[i][1] ++ ;
+    for (const segment of fallSections) {
+      for (let i = 0; i < segment.length; ++i) {
+        segment[i][1]++;
       }
     }
 
     // After doing all of the segment falls, if there is something under this segment,
     // then this is no longer falling.
-    for(const segment of fallSections) {
+    for (const segment of fallSections) {
       const lowestXY = this._lowestBlockInSegment(segment);
 
       // Is there a block beneath the bottom of the segment after the fall?
       const somethingBelowSegment = this.grid.get(lowestXY[0], lowestXY[1] + 1) != null;
       const segmentRestingOnBottom = lowestXY[1] == this.height - 1;
-      if(somethingBelowSegment || segmentRestingOnBottom ) {
-        for(const xy of segment) {
+      if (somethingBelowSegment || segmentRestingOnBottom) {
+        for (const xy of segment) {
           this.grid.get(...xy).state(BLOCK_STATE_NORMAL); // Need to do +1 because it's already been moved
         }
       }
@@ -199,9 +203,9 @@ class Board {
   }
 
   _lowestBlockInSegment(segment) {
-    let lowestXY = [-999999,-999999];
-    for(const xy of segment) {
-      if(xy[1] > lowestXY[1]) {
+    let lowestXY = [-999999, -999999];
+    for (const xy of segment) {
+      if (xy[1] > lowestXY[1]) {
         lowestXY = xy;
       }
     }
