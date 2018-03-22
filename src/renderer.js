@@ -38,7 +38,7 @@ class Renderer {
     this.frameNumber = (this.frameNumber || 0) + 1;
     this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
-    this._drawCursor(game.cursor);
+    game.cursors.forEach((c) => this._drawCursor(c));
   }
 
   _drawBlocks(board) {
@@ -53,7 +53,7 @@ class Renderer {
   }
 
   _drawCursor(cursor) {
-    this.canvasCtx.strokeStyle = 'white';
+    this.canvasCtx.strokeStyle = cursor.color; 
     const sideDash = [TS / 4, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2, TS / 2]
     this.canvasCtx.setLineDash(sideDash)
     this.canvasCtx.lineWidth = 5;

@@ -3,13 +3,14 @@ const CURSOR_WIDTH = 2;
 import { UP, DOWN, LEFT, RIGHT, SWAP } from './keyboard.js';
 
 class Cursor {
-  constructor(keyboard, board) {
+  constructor(keyboard, board, color = "white") {
     this.position = [3, 10];
     this.state = 'idle';
     this.moveCounter = 0;
     this.requestingSwap = false;
     this.keyboard = keyboard;
     this.board = board;
+    this.color = color;
     this.keyMovements = new Map();
     this.keyMovements.set(LEFT, [-1, 0]);
     this.keyMovements.set(RIGHT, [1, 0]);

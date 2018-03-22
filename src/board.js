@@ -36,7 +36,7 @@ class BoardGrid {
 };
 
 class Board {
-  constructor({ width = 6, height = 13 } = {}) {
+  constructor({ width = 15, height = 13 } = {}) {
     this.width = width;
     this.height = height;
     this.grid = new BoardGrid(width, height);

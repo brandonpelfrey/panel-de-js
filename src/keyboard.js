@@ -15,8 +15,8 @@ class Keyboard {
     this.keyMapping.set(right, RIGHT);
     this.keyMapping.set(swap, SWAP);
 
-    document.addEventListener("keydown", (e) => { this.keydown(e) }, false);
-    document.addEventListener("keyup", (e) => { this.keyup(e) }, false);
+    document.addEventListener("keydown", (e) => { this.keydown(e) }, true);
+    document.addEventListener("keyup", (e) => { this.keyup(e) }, true);
   }
 
   keydown(e) {
