@@ -115,11 +115,22 @@ class Board {
   }
 
   _generateRow() {
-    const blocks = Array(this.width);
-    for (let col = 0; col < this.width; col++) {
-      blocks[col] = new Block({ color: randomChoice(BLOCK_COLORS) });
-    }
+    let blocks;
+    do {
+      blocks = Array(this.width);
+      for (let col = 0; col < this.width; col++) {
+        blocks[col] = new Block({ color: randomChoice(BLOCK_COLORS) });
+      }
+    } while (!this._isRowValid(blocks))
     return blocks;
+  }
+  _isRowValid(row) {
+    for (let i = 2; i < row.length; i++) {
+      if (row[i - 2].color == row[i - 1].color && row[i - 1].color == row[i].color) {
+        return false;
+      }
+    }
+    return true;
   }
 
   requestSwap(positionOne, positionTwo) {
@@ -167,7 +178,7 @@ class Board {
         }
       }
     }
-    
+
     // Initiate popping!
     for (const xy of clearedPositions) {
       this.grid.get(...xy).state(BLOCK_STATE_POPPING);
