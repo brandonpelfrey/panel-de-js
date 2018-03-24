@@ -1,5 +1,5 @@
 import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js';
-import { ComboPopParticles } from './objects/ComboPopParticles.js'; 
+import { ComboPopParticles } from './objects/ComboPopParticles.js';
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
@@ -172,7 +172,9 @@ class Board {
 
           if (allClears.length !== 0) {
             // TODO number
-            this.gameObjects.push(new ComboNumberBoxObject({ boardX: x, boardY: y, number: 4 }));
+            if(allClears.length > 3) {
+              this.gameObjects.push(new ComboNumberBoxObject({ boardX: x, boardY: y, number: allClears.length }));
+            }
 
             let initialDelay = 15;
             for (let [x, y] of allClears) {
