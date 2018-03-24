@@ -1,5 +1,6 @@
 import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js';
 import { ComboPopParticles } from './objects/ComboPopParticles.js';
+import { PositionSet } from './utils.js';
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
@@ -153,7 +154,7 @@ class Board {
   }
 
   _handleBlockPopping() {
-    let newClears = [];
+    let clearedPositions = new PositionSet();
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
         const block = this.grid.get(x, y);
@@ -161,30 +162,35 @@ class Board {
         if (block && block.state() == BLOCK_STATE_NORMAL) {
           let rowClears = this._getLineClears(x, y, block.color, true);
           let colClears = this._getLineClears(x, y, block.color, false);
-          let allClears = rowClears.concat(colClears);
-          // Initiate popping!
-          for (const xy of allClears) {
-            this.grid.get(...xy).state(BLOCK_STATE_POPPING);
-            this.grid.get(...xy).popTime(BLOCK_POP_TIME);
-            this.freezeCounter += FREEZE_TIME_PER_POP;
-          }
-
-
-          if (allClears.length !== 0) {
-            // TODO number
-            if(allClears.length > 3) {
-              this.gameObjects.push(new ComboNumberBoxObject({ boardX: x, boardY: y, number: allClears.length }));
-            }
-
-            let initialDelay = 15;
-            for (let [x, y] of allClears) {
-              this.gameObjects.push(new ComboPopParticles({ boardX: x, boardY: y, initialDelay: initialDelay }));
-              initialDelay += 15;
-            }
-          }
-
+          rowClears.forEach(p => clearedPositions.add(...p));
+          colClears.forEach(p => clearedPositions.add(...p));
         }
       }
+    }
+    
+    // Initiate popping!
+    for (const xy of clearedPositions) {
+      this.grid.get(...xy).state(BLOCK_STATE_POPPING);
+      this.grid.get(...xy).popTime(BLOCK_POP_TIME);
+      this.freezeCounter += FREEZE_TIME_PER_POP;
+    }
+
+    const clearCount = clearedPositions.size();
+
+    if (clearCount > 3) {
+      let [best] = clearedPositions;
+      for (const [x, y] of clearedPositions) {
+        if (y < best[1] || (y == best[1] && x < best[0])) {
+          best = [x, y];
+        }
+      }
+      this.gameObjects.push(new ComboNumberBoxObject({ boardX: best[0], boardY: best[1], number: clearCount }));
+    }
+
+    let initialDelay = 15;
+    for (let [x, y] of clearedPositions) {
+      this.gameObjects.push(new ComboPopParticles({ boardX: x, boardY: y, initialDelay: initialDelay }));
+      initialDelay += 15;
     }
 
     // decrement popping block timers
