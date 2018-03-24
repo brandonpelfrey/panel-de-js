@@ -10,7 +10,7 @@ export class ComboNumberBoxObject extends GameObject {
     super();
     this.boardX = boardX;
     this.boardY = boardY;
-    this.number = number;
+    this.number = Math.min(number, 13);
     this.lifetime = lifetime;
     this.age = 0;
   }
@@ -21,19 +21,6 @@ export class ComboNumberBoxObject extends GameObject {
 
   shouldDie() {
     return this.age >= this.lifetime;
-  }
-
-  // https://stackoverflow.com/a/7838871
-  _roundedRect(ctx, x, y, w, h, r) {
-    if (w < 2 * r) r = w / 2;
-    if (h < 2 * r) r = h / 2;
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.arcTo(x+w, y,   x+w, y+h, r);
-    ctx.arcTo(x+w, y+h, x,   y+h, r);
-    ctx.arcTo(x,   y+h, x,   y,   r);
-    ctx.arcTo(x,   y,   x+w, y,   r);
-    ctx.closePath();
   }
 
   draw(renderer) {
