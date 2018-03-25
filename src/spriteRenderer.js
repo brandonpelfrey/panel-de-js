@@ -25,8 +25,8 @@ class SpriteRenderer {
         break;
 
       case BLOCK_STATE_POPPING:
-        spriteFrame = Math.floor(frameNumber / 10) % 2 == 0 ? 5 : 0;
-        if (block.popTime() < 30) {
+        spriteFrame = Math.floor(frameNumber / 6) % 2 == 0 ? 0 : 6;
+        if (block.popTime() < 40) {
           spriteFrame = 5;
         }
         break;
