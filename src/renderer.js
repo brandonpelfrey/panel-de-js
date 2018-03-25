@@ -29,20 +29,33 @@ class Renderer {
   }
 
   draw(game) {
-    this.canvasCtx.setTransform(1, 0, 0, 1, 0, 0);
-    this.canvasCtx.fillStyle = '#222';
-    this.canvasCtx.fillRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
+    this._drawBackground();    
 
     const scroll = game.board.scroll;
     this.yscroll = scroll * TS;
     this.canvasCtx.setTransform(1, 0, 0, 1, 0, Math.floor(-this.yscroll));
     this.frameNumber = (this.frameNumber || 0) + 1;
+
     //this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
-
     game.cursors.forEach((c) => this._drawCursor(c));
-
     this._drawObjects(game.board);
+
+    this._drawFrameNumber();
+  }
+
+  _drawFrameNumber() {
+    // TODO : Generalize this to a debug text display
+    this.canvasCtx.setTransform(1, 0, 0, 1, 0, 15);
+    this.canvasCtx.font = '15px monospace';
+    this.canvasCtx.fillStyle = 'white';
+    this.canvasCtx.fillText(`Frame ${this.frameNumber}`, 0, 0);
+  }
+
+  _drawBackground() {
+    this.canvasCtx.setTransform(1, 0, 0, 1, 0, 0);
+    this.canvasCtx.fillStyle = '#222';
+    this.canvasCtx.fillRect(0, 0, this.tileColumns * Constants.TILE_SIZE, this.tileRows * Constants.TILE_SIZE);
   }
 
   _drawObjects(board) {

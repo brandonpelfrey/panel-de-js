@@ -2,10 +2,14 @@ const CURSOR_WIDTH = 2;
 
 import { UP, DOWN, LEFT, RIGHT, SWAP, SCROLL } from './keyboard.js';
 
+const CURSOR_STATE_IDLE = Symbol('idle');
+const CURSOR_STATE_MOVING = Symbol('moving');
+const CURSOR_STATE_IDLE_REPEAT = Symbol('idle_repeat');
+
 class Cursor {
   constructor(keyboard, board, color = "white") {
     this.position = [3, 10];
-    this.state = 'idle';
+    this.state = CURSOR_STATE_IDLE;
     this.moveCounter = 0;
     this.requestingSwap = false;
     this.requestingScroll = false;
@@ -26,12 +30,12 @@ class Cursor {
   }
 
   tick() {
-    if (this.state == 'idle') {
+    if (this.state == CURSOR_STATE_IDLE) {
       for (let [key, move] of this.keyMovements) {
         if (this.keyboard.isDown(key)) {
           this.position[0] += move[0];
           this.position[1] += move[1];
-          this.state = "moving";
+          this.state = CURSOR_STATE_MOVING;
           this.moveCounter = 2;
           this.keyRepeat = true;
           this.keyRepeatCounter = 8;
@@ -56,18 +60,18 @@ class Cursor {
       this.requestingScroll = false;
     }
 
-    if (this.state == "moving") {
+    if (this.state == CURSOR_STATE_MOVING) {
       if (this.moveCounter-- < 0) {
         if (this.keyRepeatCounter > 0) {
-          this.state = 'idleRepeat';
+          this.state = CURSOR_STATE_IDLE_REPEAT;
         } else {
-          this.state = 'idle';
+          this.state = CURSOR_STATE_IDLE;
         }
       }
     }
 
-    if (this.state == 'idleRepeat' || this.state == 'moving') {
-      var allUp = true;
+    if (this.state == CURSOR_STATE_IDLE_REPEAT || this.state == CURSOR_STATE_MOVING) {
+      let allUp = true;
       for (let k of this.keyMovements.keys()) {
         allUp &= !this.keyboard.isDown(k);
       }
@@ -75,7 +79,7 @@ class Cursor {
         this.keyRepeatCounter = 0;
       }
       if (this.keyRepeatCounter-- < 0) {
-        this.state = 'idle';
+        this.state = CURSOR_STATE_IDLE;
       }
     }
 
