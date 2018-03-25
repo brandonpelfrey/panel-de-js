@@ -32,4 +32,10 @@ export class PositionSet {
 			}
 		}
 	}
+
+	bookOrder() {
+		let positions = [...this];
+		positions.sort(([x,y],[a,b]) => (y<b || (y == b && x < a)) ? -1 : 1);
+		return positions; 
+	}
 }
