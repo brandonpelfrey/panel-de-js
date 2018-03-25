@@ -1,4 +1,5 @@
 import { ComboNumberBoxObject } from './objects/ComboNumberBoxObject.js';
+import { ChainNumberBoxObject } from './objects/ChainNumberBoxObject.js';
 import { ComboPopParticles } from './objects/ComboPopParticles.js';
 import { PositionSet } from './utils.js';
 
@@ -14,7 +15,7 @@ const FREEZE_TIME_PER_POP = 40;
 
 const BLOOP_MODE = false;
 
-const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan", "blue", "grey"];
+const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan"]//, "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
 
 class Block {
@@ -83,6 +84,17 @@ class BoardGrid {
 
   get(x, y) { return this.grid[x][y]; }
   put(x, y, new_state) { this.grid[x][y] = new_state; }
+
+  *blocks() {
+    for(let x=0; x<this.width; x++) {
+      for(let y=0; y<this.height; y++) {
+        const block = this.get(x,y);
+        if(block) {
+          yield [block, x, y];
+        }
+      }
+    }
+  }
 };
 
 class Board {
@@ -94,6 +106,8 @@ class Board {
     this.freezeCounter = 0;
     this.pendingScrolls = 0;
     this.gameObjects = [];
+    this.isChaining = false;
+    this.chainCounter = 0;
     this._initBoard();
   }
 
@@ -188,15 +202,33 @@ class Board {
 
     const clearCount = clearedPositions.size();
 
-    if (clearCount > 3) {
-      let [best] = clearedPositions;
-      for (const [x, y] of clearedPositions) {
-        if (y < best[1] || (y == best[1] && x < best[0])) {
-          best = [x, y];
-        }
+    // We popped something this frame so start chaining
+    if (clearCount > 0) {
+      if (!this.isChaining) {
+        this.chainCounter = 0;
       }
-      this.gameObjects.push(new ComboNumberBoxObject({ boardX: best[0], boardY: best[1], number: clearCount }));
+      this.isChaining = true;
+      this.chainCounter++;
     }
+    let [topLeft] = clearedPositions;
+    for (const [x, y] of clearedPositions) {
+      if (y < topLeft[1] || (y == topLeft[1] && x < topLeft[0])) {
+        topLeft = [x, y];
+      }
+    }
+
+    if (clearCount > 3) {
+      this.gameObjects.push(new ComboNumberBoxObject({ boardX: topLeft[0], boardY: topLeft[1], number: clearCount }));
+    }
+
+    if(clearCount > 0 && this.chainCounter > 1) {
+      const position = topLeft;
+      if(clearCount > 3) {
+        position[1]--;
+      }
+      this.gameObjects.push(new ChainNumberBoxObject({ boardX: position[0], boardY: position[1], number: this.chainCounter }));
+    }
+
 
     let initialDelay = 15;
     for (let [x, y] of clearedPositions) {
@@ -249,8 +281,25 @@ class Board {
     this.cursors.forEach((c) => c.tick());
     this._doGravity();
     this._handleBlockPopping();
+    this._checkForEndOfChain();
     this._tickScroll();
     this._tickAndKillGameObjects();
+  }
+
+  _checkForEndOfChain() {
+    for(let [block] of this.grid.blocks()) {
+      if(block.state() == BLOCK_STATE_POPPING || block.state() == BLOCK_STATE_FALLING) {
+        this.chainBufferFrame = 2;
+        return;
+      }
+    }
+    //Need to wait for two frames of nothing popping or falling as there is a frame
+    //where things have popped, but things above it have not started to fall yet.
+    this.chainBufferFrame = (this.chainBufferFrame || 2) - 1;
+    if(this.isChaining && this.chainBufferFrame <=0) {
+      this.isChaining = false;
+      this.chainBufferFrame = 2;
+    }
   }
 
   _tickAndKillGameObjects() {
