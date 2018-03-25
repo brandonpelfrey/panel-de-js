@@ -121,6 +121,7 @@ class Board {
     this.height = height;
     this.grid = new BoardGrid(width, height);
     this.cursors = [];
+    this.scroll = 0;
     this.freezeCounter = 0;
     this.pendingScrolls = 0;
     this.gameObjects = [];
