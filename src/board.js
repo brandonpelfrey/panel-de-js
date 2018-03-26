@@ -96,7 +96,12 @@ class Board {
       }
 
       for (let row = this.height - 1; row > this.height - 8; row--) {
-        const color = randomChoice(BLOCK_COLORS);
+        let color, left, below;
+        do {
+          color = randomChoice(BLOCK_COLORS);
+          left = this.grid.get(Math.max(0,col - 1), row);
+          below = this.grid.get(col, Math.min(row + 1, this.height-1));
+        } while ((left && left.color == color) || (below && below.color == color));
         this.grid.put(col, row, new Block({ color: color }));
       }
     }
