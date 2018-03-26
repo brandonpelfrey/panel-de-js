@@ -3,7 +3,9 @@ image.src = "src/trashSprites.png";
 
 const TILE_SIZE = 16;
 
-//Sprite mapping to sprite sheet indexed by horizontal alignment, then vertical alignment
+//Sprite mapping to sprite sheet indexed by 
+//horizontal alignment [left, center, right] then 
+//vertical alignment [top, center, bottom]
 const spriteMap = [
   [
     [0, 1],
