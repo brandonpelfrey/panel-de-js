@@ -298,16 +298,16 @@ class Board {
         this.pendingScrolls--;
         this.freezeCounter += 30;
       }
-      this._pushTrash();
+      this._pushNewRow();
     }
   }
 
-  _pushTrash() {
-    this._pushTrashUp();
+  _pushNewRow() {
+    this._pushNewRowUp();
     this.cursors.forEach((c) => c.requestPushUp());
   }
 
-  _pushTrashUp() {
+  _pushNewRowUp() {
     // Move everything on the playfield up.
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
