@@ -30,10 +30,16 @@
 
       const gameTwo = new Game();
 
-      const aiTwoInput = new AIInput();
-      const cursorTwo = new Cursor(aiTwoInput, gameTwo.board);
-      const aiTwo = new AISimpleton({board: gameTwo.board, input: aiTwoInput, cursor: cursorTwo});
-      gameTwo.addCursor(cursorTwo);
+      let ais = [];
+      for(let i =0; i<1; i++) {
+        const aiTwoInput = new AIInput();
+        const cursorTwo = new Cursor(aiTwoInput, gameTwo.board);
+        cursorTwo.position[0]+=i*3;
+        cursorTwo.position[1]+=(i*3) % 5;
+        const aiTwo = new AISimpleton({board: gameTwo.board, input: aiTwoInput, cursor: cursorTwo});
+        ais.push(aiTwo);
+        gameTwo.addCursor(cursorTwo);
+      }
 
       const renderer = new Renderer('game-container-left', game.board);
       const rendererTwo = new Renderer('game-container-right', gameTwo.board);
@@ -44,7 +50,7 @@
         game.tick();
         renderer.draw(game);
 
-        aiTwo.tick();
+        ais.forEach(x => x.tick());
         gameTwo.tick();
         rendererTwo.draw(gameTwo);
 

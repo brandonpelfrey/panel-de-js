@@ -16,7 +16,7 @@ export class AISimpleton extends AIPlayer {
     if(this.inputDelay != 0) {
       return;
     } else {
-      this.inputDelay = null;
+      this.inputDelay = parseInt(5 + Math.random() * 10);
     }
 
     const board = this.board;
