@@ -4,6 +4,10 @@ const Constants = {
 const TS = Constants.TILE_SIZE;
 
 import { SpriteRenderer } from "./spriteRenderer.js"
+import { TrashRenderer } from "./trashRenderer.js"
+
+//TODO remove
+import { TrashBlock } from "./trashBlock.js"
 
 class Renderer {
   constructor(receiverId, board, spriteRenderer) {
@@ -15,6 +19,7 @@ class Renderer {
     this.receiver.appendChild(canvasEl);
     this.canvasCtx = canvasEl.getContext('2d');
     this.spriteRenderer = new SpriteRenderer();
+    this.trashRenderer = new TrashRenderer();
   }
 
   tileSize() {
@@ -38,6 +43,7 @@ class Renderer {
 
     //this._drawTileGrid(game.board);
     this._drawBlocks(game.board);
+    this._drawTrash(game.board);
     game.cursors.forEach((c) => this._drawCursor(c));
     this._drawObjects(game.board);
 
@@ -86,6 +92,14 @@ class Renderer {
       const block = board.nextRow[col];
       this.spriteRenderer.render(this.canvasCtx, block.spriteIndex, TS * col, TS * this.tileRows, TS, TS, this.frameNumber, block, true);
     }
+  }
+
+  _drawTrash(board) {
+    //TODO get real trash from board
+    let trash = new TrashBlock({x:0, y:1, height:1, width:4});
+    let x = trash.x * TS;
+    let y = trash.y * TS;
+    this.trashRenderer.render(this.canvasCtx, trash, x, y, TS); 
   }
 
   _drawCursor(cursor) {

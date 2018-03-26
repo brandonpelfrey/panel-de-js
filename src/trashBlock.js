@@ -1,4 +1,4 @@
-class TrashBlock {
+export class TrashBlock {
 
 	// x and y represent the top left hand corner of the trash block
   constructor({ x, y, width = 3, height = 1 } = {}) {
