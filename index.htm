@@ -19,7 +19,6 @@
       import {AISimpleton} from './src/ai/aiSimpleton.js';
       import {AIInput} from './src/ai/aiInput.js';
 
-      
       var stats = new Stats();
 			//stats.showPanel( 0 );
 			//document.body.appendChild( stats.dom );
@@ -32,8 +31,8 @@
       const gameTwo = new Game();
 
       const aiTwoInput = new AIInput();
-      const aiTwo = new AISimpleton({board: gameTwo.board, input: aiTwoInput});
       const cursorTwo = new Cursor(aiTwoInput, gameTwo.board);
+      const aiTwo = new AISimpleton({board: gameTwo.board, input: aiTwoInput, cursor: cursorTwo});
       gameTwo.addCursor(cursorTwo);
 
       const renderer = new Renderer('game-container-left', game.board);

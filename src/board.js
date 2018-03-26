@@ -12,7 +12,7 @@ export const BLOCK_STATE_MOVING = Symbol("BLOCK_STATE_MOVING");
 const DROP_SPEED = 3;
 const BASE_BLOCK_POP_TIME = 80;
 const BLOCK_POP_TIME_PER_BLOCK = 5;
-const SCROLL_PER_FRAME = 1 / (60 * 7);
+const SCROLL_PER_FRAME = 1 / (60 * 7 / 7);
 const FREEZE_TIME_PER_POP = 40;
 
 const BLOOP_MODE = false;
@@ -70,7 +70,7 @@ class Block {
 }
 
 class Board {
-  constructor({ width = 6, height = 12 } = {}) {
+  constructor({ width = 6 * 4, height = 12 * 2} = {}) {
     this.width = width;
     this.height = height;
     this.grid = new Grid(width, height);
