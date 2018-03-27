@@ -8,12 +8,16 @@ export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
 export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
 export const BLOCK_STATE_MOVING = Symbol("BLOCK_STATE_MOVING");
+export const BLOCK_STATE_HOVERING = Symbol("BLOCK_STATE_HOVERING");
 
-const DROP_SPEED = 3;
+const VALID_SWAP_STATES = new Set([BLOCK_STATE_FALLING, BLOCK_STATE_NORMAL]);
+
+const FRAMES_PER_GRAVITY_FALL = 1;
 const BASE_BLOCK_POP_TIME = 80;
 const BLOCK_POP_TIME_PER_BLOCK = 5;
 const SCROLL_PER_FRAME = 1 / (60 * 7);
 const FREEZE_TIME_PER_POP = 40;
+const HOVER_TIME = 9;
 
 const BLOOP_MODE = false;
 
@@ -40,6 +44,7 @@ class Block {
   popAge(newAgeValue) { return this._accessor('_popAge', newAgeValue); }
   disapearAge(newAgeValue) { return this._accessor('_disapearAge', newAgeValue); }
   movePosition(opts) { return this._accessor('_movePosition', opts); }
+  hoverTime(newValue) { return this._accessor('_hoverTime', newValue); }
 
   falling() {
     return this._state == BLOCK_STATE_FALLING;
@@ -131,10 +136,26 @@ class Board {
   requestSwap(positionOne, positionTwo) {
     const blockOne = this.grid.get(...positionOne);
     const blockTwo = this.grid.get(...positionTwo);
-    if (blockOne && blockOne.state() == BLOCK_STATE_POPPING ||
-      blockTwo && blockTwo.state() == BLOCK_STATE_POPPING) {
+
+    if (blockOne && !VALID_SWAP_STATES.has( blockOne.state()) ||
+      blockTwo && !VALID_SWAP_STATES.has( blockTwo.state())) {
       return;
     }
+
+    // If we're swapping into an empty space, need to make sure the spot above the empty isn't hovering.
+    if(blockOne && !blockTwo) {
+      const above = this.grid.get(positionTwo[0], positionTwo[1] - 1);
+      if(above && above.state() == BLOCK_STATE_HOVERING) {
+        return;
+      }
+    }
+    if(!blockOne && blockTwo) {
+      const above = this.grid.get(positionOne[0], positionOne[1] - 1);
+      if(above && above.state() == BLOCK_STATE_HOVERING) {
+        return;
+      }
+    }
+    
     this.grid.put(...positionTwo, blockOne);
     this.grid.put(...positionOne, blockTwo);
     if (blockOne) {
@@ -324,20 +345,33 @@ class Board {
 
   _doGravity() {
     // Does anything need to fall?
-    const fallSections = this._getFallSegments();
+    let fallSections = this._getFallSegments();
 
     for (const fallingSegment of fallSections) {
       for (const [x, y] of fallingSegment) {
-        this.grid.get(x, y).state(BLOCK_STATE_FALLING);
+        const block = this.grid.get(x, y);
+
+        if( block.state() == BLOCK_STATE_NORMAL) {
+          block.state(BLOCK_STATE_HOVERING);
+          block.hoverTime( HOVER_TIME );
+        } else {
+          block.hoverTime( block.hoverTime() - 1 );
+          if(block.hoverTime() < 1) {
+            block.state(BLOCK_STATE_FALLING);
+          }
+        }
       }
     }
+
+    // Ignore those sections that are hovering
+    fallSections = fallSections.filter( segment => this.grid.get(...segment[0]).state() == BLOCK_STATE_FALLING );
 
     if (fallSections.length === 0) {
       return;
     }
 
     // Do we need to wait for the cool-down of the last drop?
-    this.gravityCounter = (this.gravityCounter || DROP_SPEED) - 1;
+    this.gravityCounter = (this.gravityCounter || FRAMES_PER_GRAVITY_FALL) - 1;
     if (this.gravityCounter !== 0) {
       return;
     }
