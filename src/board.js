@@ -15,10 +15,10 @@ const VALID_SWAP_STATES = new Set([BLOCK_STATE_FALLING, BLOCK_STATE_NORMAL]);
 
 const FRAMES_PER_GRAVITY_FALL = 1;
 const BASE_BLOCK_POP_TIME = 80;
-const BLOCK_POP_TIME_PER_BLOCK = 5;
+const BLOCK_POP_TIME_PER_BLOCK = 9;
 const SCROLL_PER_FRAME = 1 / (60 * 7);
 const FREEZE_TIME_PER_POP = 40;
-const HOVER_TIME = 30;
+const HOVER_TIME = 12;
 
 const BLOOP_MODE = false;
 
@@ -237,15 +237,15 @@ class Board {
       this.gameObjects.push(new ChainNumberBoxObject({ boardX: position[0], boardY: position[1], number: this.chainCounter }));
     }
 
-    let initialDelay = 15;
-    for (let [x, y] of clearedPositions.bookOrder()) {
-      this.gameObjects.push(new ComboPopParticles({ boardX: x, boardY: y, initialDelay: initialDelay }));
-      initialDelay += BLOCK_POP_TIME_PER_BLOCK * 1.5;
-    }
-
-    //Pop blocks that have aged fully
     for (const [block, x, y] of this.grid.entries()) {
       if (block.state() == BLOCK_STATE_POPPING) {
+
+        // If this is the frame we disappear the block, spawn some poof
+        if (block.popAge() == block.disapearAge()) {
+          this.gameObjects.push(new ComboPopParticles({ boardX: x, boardY: y }));
+        }
+
+        //Pop blocks that have aged fully
         if (block.popAge() >= block.popTime()) {
           this.grid.put(x, y, null);
         }
