@@ -87,7 +87,7 @@ class Board {
     this.gameObjects = [];
     this.isChaining = false;
     this.chainCounter = 0;
-    this.trash = [new TrashBlock({ x: 0, y: 8 })];
+    this.trash = [new TrashBlock({ x: 0, y: 1 })];
     this._initBoard();
   }
 
@@ -360,7 +360,7 @@ class Board {
     // Does anything need to fall?
     let frameStartHoles = new PositionSet();
     for (let [block, x, y] of this.grid.allPositions()) {
-      if (block == undefined) {
+      if (block == undefined && this.trashGrid.get(x,y) == undefined) {
         frameStartHoles.add(x, y);
       }
     }
@@ -369,10 +369,10 @@ class Board {
       for (let x = 0; x < this.width; x++) {
         let block = this.grid.get(x, y);
         if (block) {
-          let below = this.grid.get(x, y + 1);
-
+          let belowBlock = this.grid.get(x, y + 1);
+          let belowTrash = this.trashGrid.get(x, y + 1);
           //Block should fall or start hovering
-          if (below == undefined) {
+          if (belowBlock == undefined && belowTrash == undefined) {
             if (block.state() == BLOCK_STATE_NORMAL) {
               if (frameStartHoles.has(x, y + 1)) {
                 block.state(BLOCK_STATE_HOVERING);
@@ -390,9 +390,34 @@ class Board {
               this.grid.put(x, y, null);
               this.grid.put(x, y + 1, block);
               let newBelow = this.grid.get(x, y + 2);
-              if (y + 1 == this.height - 1 || (newBelow && newBelow.state() != BLOCK_STATE_FALLING)) {
+              let newTrashBelow = this.trashGrid.get(x, y + 2);
+              if (y + 1 == this.height - 1 ||
+                (newBelow && newBelow.state() != BLOCK_STATE_FALLING) ||
+                newTrashBelow) {
                 block.state(BLOCK_STATE_NORMAL);
               }
+            }
+          }
+        }
+
+        let trashBlock = this.trashGrid.get(x,y);
+        if(trashBlock && trashBlock.x == x && trashBlock.y == y) {
+          let positionsBelow = Array.from({length: trashBlock.width}, (_,i) => [i+x, y+trashBlock.height] );
+          let allSpaceBelow = true;
+          let wasAllSpaceToStart = true;
+          for(let [belowX,belowY] of positionsBelow) {
+            if(this.grid.get(belowX,belowY) || this.trashGrid.get(belowX,belowY)) {
+              allSpaceBelow = false;
+            }
+            if(!frameStartHoles.has(belowX,belowY)) {
+              wasAllSpaceToStart = false;
+            }
+          }
+          if(allSpaceBelow) {
+            trashBlock.y++;
+            for(let [tx,ty] of trashBlock.positions()) {
+              this.trashGrid.put(tx,ty,null);
+              this.trashGrid.put(tx,ty+1,trashBlock);
             }
           }
         }
