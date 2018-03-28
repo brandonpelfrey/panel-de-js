@@ -301,7 +301,9 @@ class Board {
 
   _checkForEndOfChain() {
     for (let [block] of this.grid.entries()) {
-      if (block.state() == BLOCK_STATE_POPPING || block.state() == BLOCK_STATE_FALLING) {
+      if (block.state() == BLOCK_STATE_POPPING 
+        || block.state() == BLOCK_STATE_FALLING 
+        || block.state() == BLOCK_STATE_HOVERING) {
         this.chainBufferFrame = 2;
         return;
       }
