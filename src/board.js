@@ -3,7 +3,7 @@ import { ChainNumberBoxObject } from './objects/ChainNumberBoxObject.js';
 import { ComboPopParticles } from './objects/ComboPopParticles.js';
 import { PositionSet } from './utils.js';
 import { Grid } from './grid.js';
-import { TrashBlock } from './trashBlock.js';
+import { TrashBlock, TRASH_STATE_NORMAL, TRASH_STATE_POPPING } from './trashBlock.js';
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
@@ -87,7 +87,7 @@ class Board {
     this.gameObjects = [];
     this.isChaining = false;
     this.chainCounter = 0;
-    this.trash = [new TrashBlock({ x: 0, y: 1 })];
+    this.trash = [new TrashBlock({ x: 0, y: 1 }), new TrashBlock({ x: 0, y: 2, width: 6}) ];
     this._initBoard();
   }
 
@@ -212,6 +212,9 @@ class Board {
       block.disapearAge(BASE_BLOCK_POP_TIME + BLOCK_POP_TIME_PER_BLOCK * count);
       count++;
       this.freezeCounter += FREEZE_TIME_PER_POP;
+
+      // Set any adjacent trash blocks that are in a normal state to popping
+      this._initiateTrashPopping(...xy);
     }
 
     // We popped something this frame so start chaining
@@ -258,6 +261,28 @@ class Board {
     }
   }
 
+  _initiateTrashPopping(x, y) {
+    // Look through each trash block. See if (x,y) falls within one square of the block
+    for (const trash of this.trash) {
+
+      if(trash.state() != TRASH_STATE_NORMAL) {
+        continue;
+      }
+      
+      const left = trash.x - 1;
+      const right = trash.x + trash.width;
+      const up = trash.y - 1;
+      const down = trash.y + trash.height;
+
+      if(x >= left && x <= right && y >= up && y <= down) {
+        trash.state(TRASH_STATE_POPPING);
+        trash.popAge( 60 );
+        // TODO : Delays / animation triggering
+      }
+
+    }
+  }
+
   _getLineClears(x, y, color, isRow) {
     let clears = [];
     let next;
@@ -285,9 +310,22 @@ class Board {
     this.cursors.forEach((c) => c.tick());
     this._doGravity();
     this._handleBlockPopping();
+    this._tickTrash();
     this._checkForEndOfChain();
     this._tickScroll();
     this._tickAndKillGameObjects();
+  }
+
+  _tickTrash() {
+    for(const trash of this.trash) {
+      if(trash.state() == TRASH_STATE_POPPING) {
+        trash.popAge( trash.popAge() - 1 );
+      }
+    }
+
+    this.trash = this.trash.filter( trash => {
+      return (trash.state() != TRASH_STATE_POPPING) || (trash.popAge() > 0)
+    });
   }
 
   _indexTrashBlocks() {
