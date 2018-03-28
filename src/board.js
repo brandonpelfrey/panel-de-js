@@ -3,6 +3,7 @@ import { ChainNumberBoxObject } from './objects/ChainNumberBoxObject.js';
 import { ComboPopParticles } from './objects/ComboPopParticles.js';
 import { PositionSet } from './utils.js';
 import { Grid } from './grid.js';
+import { TrashBlock } from './trashBlock.js';
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
@@ -17,7 +18,7 @@ const BASE_BLOCK_POP_TIME = 80;
 const BLOCK_POP_TIME_PER_BLOCK = 5;
 const SCROLL_PER_FRAME = 1 / (60 * 7);
 const FREEZE_TIME_PER_POP = 40;
-const HOVER_TIME = 9;
+const HOVER_TIME = 30;
 
 const BLOOP_MODE = false;
 
@@ -75,7 +76,7 @@ class Block {
 }
 
 class Board {
-  constructor({ width = 6 * 4, height = 12 * 2} = {}) {
+  constructor({ width = 6, height = 12 } = {}) {
     this.width = width;
     this.height = height;
     this.grid = new Grid(width, height);
@@ -86,6 +87,7 @@ class Board {
     this.gameObjects = [];
     this.isChaining = false;
     this.chainCounter = 0;
+    this.trash = [new TrashBlock({ x: 0, y: 8 })];
     this._initBoard();
   }
 
@@ -104,8 +106,8 @@ class Board {
         let color, left, below;
         do {
           color = randomChoice(BLOCK_COLORS);
-          left = this.grid.get(Math.max(0,col - 1), row);
-          below = this.grid.get(col, Math.min(row + 1, this.height-1));
+          left = this.grid.get(Math.max(0, col - 1), row);
+          below = this.grid.get(col, Math.min(row + 1, this.height - 1));
         } while ((left && left.color == color) || (below && below.color == color));
         this.grid.put(col, row, new Block({ color: color }));
       }
@@ -137,25 +139,25 @@ class Board {
     const blockOne = this.grid.get(...positionOne);
     const blockTwo = this.grid.get(...positionTwo);
 
-    if (blockOne && !VALID_SWAP_STATES.has( blockOne.state()) ||
-      blockTwo && !VALID_SWAP_STATES.has( blockTwo.state())) {
+    if (blockOne && !VALID_SWAP_STATES.has(blockOne.state()) ||
+      blockTwo && !VALID_SWAP_STATES.has(blockTwo.state())) {
       return;
     }
 
     // If we're swapping into an empty space, need to make sure the spot above the empty isn't hovering.
-    if(blockOne && !blockTwo) {
+    if (blockOne && !blockTwo) {
       const above = this.grid.get(positionTwo[0], positionTwo[1] - 1);
-      if(above && above.state() == BLOCK_STATE_HOVERING) {
+      if (above && above.state() == BLOCK_STATE_HOVERING) {
         return;
       }
     }
-    if(!blockOne && blockTwo) {
+    if (!blockOne && blockTwo) {
       const above = this.grid.get(positionOne[0], positionOne[1] - 1);
-      if(above && above.state() == BLOCK_STATE_HOVERING) {
+      if (above && above.state() == BLOCK_STATE_HOVERING) {
         return;
       }
     }
-    
+
     this.grid.put(...positionTwo, blockOne);
     this.grid.put(...positionOne, blockTwo);
     if (blockOne) {
@@ -270,6 +272,7 @@ class Board {
   }
 
   tick() {
+    this._indexTrashBlocks();
     for (const [block] of this.grid.entries()) {
       block.tick();
     }
@@ -280,6 +283,15 @@ class Board {
     this._checkForEndOfChain();
     this._tickScroll();
     this._tickAndKillGameObjects();
+  }
+
+  _indexTrashBlocks() {
+    this.trashGrid = new Grid(this.width, this.height);
+    for (const trash of this.trash) {
+      for (let [x, y] of trash.positions()) {
+        this.trashGrid.put(x, y, trash);
+      }
+    }
   }
 
   _checkForEndOfChain() {
@@ -336,6 +348,7 @@ class Board {
         this.grid.put(x, y + 1, null);
       }
     }
+    this.trash.forEach(t => t.y--);
 
     for (let x = 0; x < this.width; x++) {
       this.grid.put(x, this.height - 1, this.nextRow[x]);
@@ -345,135 +358,46 @@ class Board {
 
   _doGravity() {
     // Does anything need to fall?
-    let fallSections = this._getFallSegments();
+    let frameStartHoles = new PositionSet();
+    for (let [block, x, y] of this.grid.allPositions()) {
+      if (block == undefined) {
+        frameStartHoles.add(x, y);
+      }
+    }
 
-    for (const fallingSegment of fallSections) {
-      for (const [x, y] of fallingSegment) {
-        const block = this.grid.get(x, y);
+    for (let y = this.height - 2; y >= 0; y--) {
+      for (let x = 0; x < this.width; x++) {
+        let block = this.grid.get(x, y);
+        if (block) {
+          let below = this.grid.get(x, y + 1);
 
-        if( block.state() == BLOCK_STATE_NORMAL) {
-          block.state(BLOCK_STATE_HOVERING);
-          block.hoverTime( HOVER_TIME );
-        } else {
-          block.hoverTime( block.hoverTime() - 1 );
-          if(block.hoverTime() < 1) {
-            block.state(BLOCK_STATE_FALLING);
+          //Block should fall or start hovering
+          if (below == undefined) {
+            if (block.state() == BLOCK_STATE_NORMAL) {
+              if (frameStartHoles.has(x, y + 1)) {
+                block.state(BLOCK_STATE_HOVERING);
+                block.hoverTime(HOVER_TIME);
+              } else {
+                block.state(BLOCK_STATE_FALLING);
+              }
+            }
+            if (block.state() == BLOCK_STATE_HOVERING) {
+              block.hoverTime(block.hoverTime() - 1);
+              if (block.hoverTime() < 1) {
+                block.state(BLOCK_STATE_FALLING);
+              }
+            } else if (block.state() == BLOCK_STATE_FALLING) {
+              this.grid.put(x, y, null);
+              this.grid.put(x, y + 1, block);
+              let newBelow = this.grid.get(x, y + 2);
+              if (y + 1 == this.height - 1 || (newBelow && newBelow.state() != BLOCK_STATE_FALLING)) {
+                block.state(BLOCK_STATE_NORMAL);
+              }
+            }
           }
         }
       }
     }
-
-    // Ignore those sections that are hovering
-    fallSections = fallSections.filter( segment => this.grid.get(...segment[0]).state() == BLOCK_STATE_FALLING );
-
-    if (fallSections.length === 0) {
-      return;
-    }
-
-    // Do we need to wait for the cool-down of the last drop?
-    this.gravityCounter = (this.gravityCounter || FRAMES_PER_GRAVITY_FALL) - 1;
-    if (this.gravityCounter !== 0) {
-      return;
-    }
-
-    // Reset the gravity counter.
-    this.gravityCounter = null;
-
-    // We waited long enough, engage the fall logic.
-    fallSections.forEach((segment) => { this._performSegmentFall(segment); });
-
-    // Update our segments to reflect the fact that the blocks moved
-    for (const segment of fallSections) {
-      for (let i = 0; i < segment.length; ++i) {
-        segment[i][1]++;
-      }
-    }
-
-    // After doing all of the segment falls, if there is something under this segment,
-    // then this is no longer falling.
-    for (const segment of fallSections) {
-      const lowestXY = this._lowestBlockInSegment(segment);
-
-      // Is there a block beneath the bottom of the segment after the fall?
-      const somethingBelowSegment = this.grid.get(lowestXY[0], lowestXY[1] + 1) != null;
-      const segmentRestingOnBottom = lowestXY[1] == this.height - 1;
-      if (somethingBelowSegment || segmentRestingOnBottom) {
-        for (const xy of segment) {
-          this.grid.get(...xy).state(BLOCK_STATE_NORMAL); // Need to do +1 because it's already been moved
-        }
-      }
-    }
-
-  }
-
-  _lowestBlockInSegment(segment) {
-    let lowestXY = [-999999, -999999];
-    for (const xy of segment) {
-      if (xy[1] > lowestXY[1]) {
-        lowestXY = xy;
-      }
-    }
-    return lowestXY;
-  }
-
-  _performSegmentFall(segment) {
-    const fallingBlocks = [];
-
-    // Get all the blocks for this segment, remove them
-    for (const [x, y] of segment) {
-      const block = this.grid.get(x, y);
-      fallingBlocks.push([x, y, block]);
-      this.grid.put(x, y, null);
-    }
-
-    // Place them back down one square
-    for (const [x, y, block] of fallingBlocks) {
-      this.grid.put(x, y + 1, block);
-    }
-  }
-
-  _getFallSegments() {
-
-    const results = [];
-    for (let x = 0; x < this.width; ++x) {
-
-      let y = (this.height - 1); // Start at the bottom of the field
-      let currentSegment = [];
-
-      // Find the first open spot.
-      while (this.grid.get(x, y) != null && y >= 0) {
-        y--;
-      }
-
-      while (y >= 0) {
-        const whatsHere = this.grid.get(x, y);
-
-        if (whatsHere != null && whatsHere.state() !== BLOCK_STATE_MOVING) {
-          currentSegment.push([x, y]);
-        } else {
-          // There's nothing at this cell. But if there is still an ongoing segment, then we just finished a segment
-          if (currentSegment.length > 0) {
-            results.push(currentSegment);
-            currentSegment = [];
-          }
-
-          while (y >= 0 && this.grid.get(x, y) != null) {
-            y--;
-          }
-        }
-
-        y--;
-      }
-
-      // If there is an unfinished segment at this point, push it.
-      if (currentSegment.length > 0) {
-        results.push(currentSegment);
-        currentSegment = [];
-      }
-
-    }
-
-    return results;
   }
 
 }
