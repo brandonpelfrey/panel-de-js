@@ -136,6 +136,11 @@ class Board {
   }
 
   requestSwap(positionOne, positionTwo) {
+    // Can't swap with trashblocks
+    if(this.trashGrid.get(...positionOne) || this.trashGrid.get(...positionTwo)) {
+      return;
+    }
+
     const blockOne = this.grid.get(...positionOne);
     const blockTwo = this.grid.get(...positionTwo);
 
@@ -400,6 +405,7 @@ class Board {
           }
         }
 
+        // Handle gravity for trash blocks with top left corner at this [x,y] position 
         let trashBlock = this.trashGrid.get(x,y);
         if(trashBlock && trashBlock.x == x && trashBlock.y == y) {
           let positionsBelow = Array.from({length: trashBlock.width}, (_,i) => [i+x, y+trashBlock.height] );
