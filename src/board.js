@@ -91,6 +91,10 @@ class Board {
     this._initBoard();
   }
 
+  setTrashQueue(trashQueue) {
+    this.trashQueue = trashQueue;
+  }
+
   addCursor(cursor) {
     this.cursors.push(cursor);
   }
@@ -248,6 +252,7 @@ class Board {
     }
 
     if (clearCount > 3) {
+      this._addComboTrash(clearCount);
       this.gameObjects.push(new ComboNumberBoxObject({ boardX: topLeft[0], boardY: topLeft[1], number: clearCount }));
     }
 
@@ -317,16 +322,26 @@ class Board {
     return clears.length >= 3 ? clears : [];
   }
 
+  _addComboTrash(comboSize) {
+    //TODO this is so wrong
+    let trashLength = comboSize - 1;
+    if (trashLength <= this.width) {
+      this.trashQueue.addTrash(new TrashBlock({ width: trashLength }));
+    } else if (trashLength <= this.width * 2) {
+      let half = Math.floor(trashLength / 2);
+      this.trashQueue.addTrash(new TrashBlock({ width: half }));
+      this.trashQueue.addTrash(new TrashBlock({ width: trashLength - half }));
+    } else {
+      for (let i = 0; i < 6.5 * Math.log(trashLength) - 13; i++) {
+        this.trashQueue.addTrash(new TrashBlock({ width: this.width }));
+      }
+    }
+  }
+
   tick() {
     this._indexTrashBlocks();
     for (const [block] of this.grid.entries()) {
       block.tick();
-    }
-
-    // TODO remove once trash spawns from combos/chains
-    this.frame = (this.frame || 0) + 1;
-    if (this.frame % 600 == 0) {
-      this.addTrashBlock(new TrashBlock());
     }
 
     this.cursors.forEach((c) => c.tick());
@@ -375,6 +390,10 @@ class Board {
     if (this.isChaining && this.chainBufferFrame <= 0) {
       this.isChaining = false;
       this.chainBufferFrame = 2;
+      if (this.chainCounter > 1) {
+        this.trashQueue.addTrash(new TrashBlock({ width: this.width, height: this.chainCounter - 1 }));
+      }
+      this.trashQueue.flush();
     }
   }
 
