@@ -1,11 +1,10 @@
-
 const TRASH_STATE_NORMAL = Symbol.for('TRASH_STATE_NORMAL');
 const TRASH_STATE_POPPING = Symbol.for('TRASH_STATE_POPPING');
 
 class TrashBlock {
 
-	// x and y represent the top left hand corner of the trash block
-  constructor({ x, y, width = 3, height = 1 } = {}) {
+  // x and y represent the top left hand corner of the trash block
+  constructor({ x = 0, y = 0, width = 3, height = 1 } = {}) {
     this.x = x;
     this.y = y;
     this.width = width;
@@ -15,25 +14,25 @@ class TrashBlock {
   }
 
   state(newState) {
-    if(newState !== undefined) {
+    if (newState !== undefined) {
       this._state = newState;
     }
     return this._state;
   }
 
   popAge(newValue) {
-    if(newValue !== undefined) {
+    if (newValue !== undefined) {
       this._popAge = newValue;
     }
     return this._popAge;
   }
 
-  *positions() {
-  	for(let i=0; i<this.width; i++) {
-  		for(let j=0; j<this.height; j++) {
-  			yield [this.x+i, this.y+j];
-  		}
-  	}
+  * positions() {
+    for (let i = 0; i < this.width; i++) {
+      for (let j = 0; j < this.height; j++) {
+        yield [this.x + i, this.y + j];
+      }
+    }
   }
 }
 
