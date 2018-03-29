@@ -4,6 +4,7 @@ import { ComboPopParticles } from './objects/ComboPopParticles.js';
 import { PositionSet } from './utils.js';
 import { Grid } from './grid.js';
 import { TrashBlock, TRASH_STATE_NORMAL, TRASH_STATE_POPPING } from './trashBlock.js';
+import { TrashQueue } from './trashQueue.js';
 
 export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
 export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
@@ -88,6 +89,7 @@ class Board {
     this.isChaining = false;
     this.chainCounter = 0;
     this.trash = [];
+    this.trashQueue = new TrashQueue();
     this._initBoard();
   }
 
