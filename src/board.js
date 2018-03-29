@@ -5,12 +5,15 @@ import { PositionSet } from './utils.js';
 import { Grid } from './grid.js';
 import { TrashBlock, TRASH_STATE_NORMAL, TRASH_STATE_POPPING } from './trashBlock.js';
 import { TrashQueue } from './trashQueue.js';
-
-export const BLOCK_STATE_NORMAL = Symbol("BLOCK_STATE_NORMAL");
-export const BLOCK_STATE_POPPING = Symbol("BLOCK_STATE_POPPING");
-export const BLOCK_STATE_FALLING = Symbol("BLOCK_STATE_FALLING");
-export const BLOCK_STATE_MOVING = Symbol("BLOCK_STATE_MOVING");
-export const BLOCK_STATE_HOVERING = Symbol("BLOCK_STATE_HOVERING");
+import {
+  BLOCK_STATE_NORMAL,
+  BLOCK_STATE_POPPING,
+  BLOCK_STATE_FALLING,
+  BLOCK_STATE_MOVING,
+  BLOCK_STATE_HOVERING,
+  BLOCK_COLORS,
+  Block
+} from './block.js';
 
 const VALID_SWAP_STATES = new Set([BLOCK_STATE_FALLING, BLOCK_STATE_NORMAL]);
 
@@ -21,60 +24,7 @@ const SCROLL_PER_FRAME = 1 / (60 * 7);
 const FREEZE_TIME_PER_POP = 40;
 const HOVER_TIME = 12;
 
-const BLOOP_MODE = false;
-
-const BLOCK_COLORS = ["green", "purple", "red", "yellow", "cyan"] //, "blue", "grey"];
 const randomChoice = arr => arr[Math.floor(Math.random() * arr.length)];
-
-class Block {
-  constructor({ state = BLOCK_STATE_NORMAL, color = 'red' } = {}) {
-    this._state = state;
-    this.color = color;
-    this.spriteIndex = BLOCK_COLORS.indexOf(color);
-  }
-
-  // Convenience for basic getter/setter methods
-  _accessor(propertyName, newValue) {
-    if (newValue !== undefined) {
-      this[propertyName] = newValue;
-    }
-    return this[propertyName];
-  }
-
-  state(newState) { return this._accessor('_state', newState); }
-  popTime(newTimeValue) { return this._accessor('_popTime', newTimeValue); }
-  popAge(newAgeValue) { return this._accessor('_popAge', newAgeValue); }
-  disapearAge(newAgeValue) { return this._accessor('_disapearAge', newAgeValue); }
-  movePosition(opts) { return this._accessor('_movePosition', opts); }
-  hoverTime(newValue) { return this._accessor('_hoverTime', newValue); }
-
-  falling() {
-    return this._state == BLOCK_STATE_FALLING;
-  }
-
-  previousPosition(opts) {
-    if (opts) {
-      this.lastPosition = opts;
-      if (!BLOOP_MODE) {
-        this.state(BLOCK_STATE_MOVING);
-      }
-    }
-    return this.lastPosition;
-  }
-
-  tick() {
-    if (this._movePosition > 0) {
-      this._movePosition -= 1 / 4;
-      if (this._movePosition <= 0) {
-        this.state(BLOCK_STATE_NORMAL);
-      }
-    }
-
-    if (this._popAge != undefined) {
-      this._popAge++;
-    }
-  }
-}
 
 class Board {
   constructor({ width = 6, height = 12 } = {}) {
@@ -362,8 +312,19 @@ class Board {
       }
     }
 
+    for (let trash of this.trash) {
+      if (trash.state() == TRASH_STATE_POPPING && trash.popAge() == 0) {
+        for (let i = 0; i < trash.width; i++) {
+          let x = trash.x + i;
+          let y = trash.y + trash.height - 1;
+          this.grid.put(x, y, trash.interiorBlocks.get(i, trash.height - 1));
+        }
+        trash.shrink();
+      }
+    }
+
     this.trash = this.trash.filter(trash => {
-      return (trash.state() != TRASH_STATE_POPPING) || (trash.popAge() > 0)
+      return trash.height > 0;
     });
   }
 

@@ -1,4 +1,4 @@
-import { BLOCK_STATE_FALLING, BLOCK_STATE_POPPING, BLOCK_STATE_NORMAL } from './board.js';
+import { BLOCK_STATE_FALLING, BLOCK_STATE_POPPING, BLOCK_STATE_NORMAL } from './block.js';
 
 const image = new Image();
 image.src = "src/sprites.png";

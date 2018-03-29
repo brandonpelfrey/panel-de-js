@@ -1,3 +1,6 @@
+import { Block } from "./block.js";
+import { Grid } from "./grid.js";
+
 const TRASH_STATE_NORMAL = Symbol.for('TRASH_STATE_NORMAL');
 const TRASH_STATE_POPPING = Symbol.for('TRASH_STATE_POPPING');
 
@@ -11,6 +14,19 @@ class TrashBlock {
     this.height = height;
     this._state = TRASH_STATE_NORMAL;
     this._popAge = 0;
+    this._initGrid();
+  }
+
+  _initGrid() {
+    this.interiorBlocks = new Grid( this.width, this.height );
+    for (let [block, x, y] of this.interiorBlocks.allPositions()) {
+      this.interiorBlocks.put(x,y,Block.randomBlock());
+    }
+  }
+
+  shrink() {
+    this.height--;
+    this._state = TRASH_STATE_NORMAL;
   }
 
   state(newState) {

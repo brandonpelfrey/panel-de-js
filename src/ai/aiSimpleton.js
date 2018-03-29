@@ -1,6 +1,6 @@
 import { AIPlayer } from "./aiplayer.js";
 import { Buttons } from "../input.js";
-import { BLOCK_STATE_NORMAL } from "../board.js";
+import { BLOCK_STATE_NORMAL } from "../block.js";
 
 const DIRECTIONS = [Buttons.LEFT, Buttons.RIGHT, Buttons.UP, Buttons.DOWN, Buttons.SWAP];
 
