@@ -251,7 +251,7 @@ class Board {
       if (matchx && (up < y && y < down) || matchy && (left < x && x < right)) {
         trash.state(TRASH_STATE_POPPING);
         trash.popAge(60);
-        
+
         // This trash popping could chain into popping other trash
         for(let trashPositions of trash.positions()) {
           this._initiateTrashPopping(...trashPositions);
@@ -396,12 +396,7 @@ class Board {
 
   _pushNewRowUp() {
     // Move everything on the playfield up.
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        this.grid.put(x, y, this.grid.get(x, y + 1));
-        this.grid.put(x, y + 1, null);
-      }
-    }
+    this.grid.pushUp();
     this.trash.forEach(t => t.y--);
 
     for (let x = 0; x < this.width; x++) {
