@@ -251,6 +251,11 @@ class Board {
       if (matchx && (up < y && y < down) || matchy && (left < x && x < right)) {
         trash.state(TRASH_STATE_POPPING);
         trash.popAge(60);
+        
+        // This trash popping could chain into popping other trash
+        for(let trashPositions of trash.positions()) {
+          this._initiateTrashPopping(...trashPositions);
+        }
       }
       // TODO : Delays / animation triggering
     }
