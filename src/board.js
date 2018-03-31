@@ -38,7 +38,7 @@ class Board {
     this.gameObjects = [];
     this.isChaining = false;
     this.chainCounter = 0;
-    this.trash = [];
+    this.trash = [new TrashBlock({x:0, y:1, width: 6, height: 3})];
     this.trashQueue = new TrashQueue();
     this._initBoard();
   }
@@ -146,14 +146,19 @@ class Board {
   }
 
   requestScroll() {
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        const block = this.grid.get(x, y);
-        if (block && block.state() == BLOCK_STATE_POPPING) {
-          return;
-        }
+    for(const [block] of this.grid.entries) {
+      if (block && block.state() == BLOCK_STATE_POPPING) {
+        return;
       }
     }
+
+    // You can't force-scroll when something's popping
+    for(const trash of this.trash) {
+      if(trash.state() == TRASH_STATE_POPPING) {
+        return;
+      }
+    }
+
     this.pendingScrolls++;
   }
 
@@ -249,15 +254,15 @@ class Board {
 
       // Need to make sure we don't pop trash that is diagonally adjacent to this popped position
       if (matchx && (up < y && y < down) || matchy && (left < x && x < right)) {
+
+        const totalPopTime = trash.width * trash.height * trash.popTimePerBlock;
         trash.state(TRASH_STATE_POPPING);
-        trash.popAge(60);
+        trash.popAge(totalPopTime);
 
         // This trash popping could chain into popping other trash
-        for(let trashPositions of trash.positions()) {
-          this._initiateTrashPopping(...trashPositions);
-        }
+        [trash.positions()].forEach( p => this._initiateTrashPopping(...p) );
       }
-      // TODO : Delays / animation triggering
+
     }
   }
 
@@ -319,18 +324,20 @@ class Board {
 
     for (let trash of this.trash) {
       if (trash.state() == TRASH_STATE_POPPING && trash.popAge() == 0) {
+        
+        // This is an assumption that popping a trash block always leaves exactly one row of blocks afterwards
         for (let i = 0; i < trash.width; i++) {
           let x = trash.x + i;
           let y = trash.y + trash.height - 1;
           this.grid.put(x, y, trash.interiorBlocks.get(i, trash.height - 1));
         }
+
+        // Assumed here that exactly one row of interiorBlocks was added previously
         trash.shrink();
       }
     }
 
-    this.trash = this.trash.filter(trash => {
-      return trash.height > 0;
-    });
+    this.trash = this.trash.filter(trash => trash.height > 0);
   }
 
   _indexTrashBlocks() {
@@ -371,6 +378,13 @@ class Board {
   }
 
   _tickScroll() {
+    // No scrolling if trash is popping
+    for(const trash of this.trash) {
+      if(trash.state() == TRASH_STATE_POPPING) {
+        return;
+      }
+    }
+
     if (this.freezeCounter > 0) {
       this.freezeCounter--;
     } else {
