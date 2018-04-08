@@ -146,7 +146,7 @@ class Board {
   }
 
   requestScroll() {
-    for(const [block] of this.grid.entries) {
+    for(const [block] of this.grid.entries()) {
       if (block && block.state() == BLOCK_STATE_POPPING) {
         return;
       }
