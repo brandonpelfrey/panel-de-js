@@ -19,14 +19,19 @@
       import {AISimpleton} from './src/ai/aiSimpleton.js';
       import {AIInput} from './src/ai/aiInput.js';
       import {Buttons} from './src/input.js';
-
-      var stats = new Stats();
-			//stats.showPanel( 0 );
-			//document.body.appendChild( stats.dom );
+      import {InputOr} from './src/InputOr.js';
+      import {GamePadInput, GamePadManager} from './src/GamePad.js';
 
       const game = new Game();
+
+      const gamePadManager = new GamePadManager();
+      gamePadManager.installEventHandlers();
+
       const keyboard = new Keyboard({});
-      const cursor = new Cursor(keyboard, game.board);
+      const gamePadInput = new GamePadInput({gamePadManager, gamePadIndex:0});
+      const playerOneInput = new InputOr([gamePadInput, keyboard]);
+
+      const cursor = new Cursor(playerOneInput, game.board);
       game.addCursor(cursor);
 
       const gameTwo = new Game();
@@ -52,8 +57,6 @@
       let keys_pressed_last_frame = new Set();
 
       function animate() {
-        stats.begin();
-
         const pause_pressed = keyboard.isDown( Buttons.GAME_TOGGLE_PAUSE );
         const frame_advance_pressed = keyboard.isDown( Buttons.GAME_FRAME_ADVANCE );
 
@@ -79,11 +82,6 @@
         keys_pressed_last_frame.clear();
         if(pause_pressed) keys_pressed_last_frame.add( Buttons.GAME_TOGGLE_PAUSE );
         if(frame_advance_pressed) keys_pressed_last_frame.add( Buttons.GAME_FRAME_ADVANCE );
-        
-
-        
-
-        stats.end();
 
         requestAnimationFrame(animate);
       }
