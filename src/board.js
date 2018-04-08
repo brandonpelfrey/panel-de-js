@@ -38,7 +38,7 @@ class Board {
     this.gameObjects = [];
     this.isChaining = false;
     this.chainCounter = 0;
-    this.trash = [new TrashBlock({x:0, y:1, width: 6, height: 3}), new TrashBlock({y: -10, width:6, height:3})];
+    this.trash = []; 
     this.trashQueue = new TrashQueue();
     this._initBoard();
   }
