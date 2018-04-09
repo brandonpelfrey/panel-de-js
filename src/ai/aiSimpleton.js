@@ -55,8 +55,8 @@ export class AISimpleton extends AIPlayer {
         // 1 _  or _ 2
         // . _     _ .
 
-        let swappable = block1 && (!block2) && (!block4);
-        swappable |= block2 && (!block1) && (!block3);
+        let swappable = block1 && block3 && (!block2) && (!block4);
+        swappable |= block2 && block4 && (!block1) && (!block3);
 
         if (swappable) {
 
@@ -190,7 +190,7 @@ export class AISimpleton extends AIPlayer {
       const score = deltaY +
         Math.abs(cursorX - columns[1]) +
         Math.abs(columns[0] - columns[1]) * 2 +
-        Math.abs(columns[1] - columns[2]) * 2;
+        Math.abs(columns[1] - columns[2]) * 2 + Math.random()*2;
       if (score < bestScore) {
         bestScore = score;
         bestOption = [row, color, columns];
